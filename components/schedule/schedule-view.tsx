@@ -199,7 +199,7 @@ export function ScheduleView({
 											<span className="image-placeholder-night absolute inset-0" />
 											<SafeImage src={sm?.image} alt="" fill sizes="(min-width: 1024px) 80rem, 100vw" className="object-cover opacity-80" />
 											<span aria-hidden className="absolute inset-0 bg-gradient-to-r from-night/85 via-night/40 to-transparent" />
-											<Viewfinder inset="sm" rec={false} readout={sm?.readout} />
+											<Viewfinder inset="sm" rec={false} readout={sm?.readout} readoutClassName="max-sm:hidden" />
 											<div className="absolute inset-y-0 left-6 flex flex-col justify-center sm:left-8">
 												<p className="font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white/70">
 													{sm?.site === 'wynwood' ? 'Wynwood' : 'South Beach'} · {list.length} {list.length === 1 ? 'call' : 'calls'}
@@ -211,7 +211,7 @@ export function ScheduleView({
 											</div>
 										</div>
 									</div>
-									<ul className="divide-y divide-line overflow-hidden rounded-b-[16px] border border-t-0 border-line">
+									<ul className="divide-y divide-line rounded-b-[16px] border border-t-0 border-line [&>li:last-child]:rounded-b-[16px]">
 										{list.map((o) => {
 											const key = sessionKey(o);
 											return (

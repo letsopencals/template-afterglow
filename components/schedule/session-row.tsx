@@ -9,7 +9,7 @@ import { SessionTake } from '@/components/schedule/session-take';
 import type { Occurrence } from '@/lib/timetable';
 import { scheduleHref } from '@/lib/schedule-url';
 import { siteConfig, toneHex } from '@/lib/site-config';
-import { dayLabel, minutesLabel, timeParts } from '@/lib/when';
+import { dayLabel, timeParts } from '@/lib/when';
 import type { ScheduleClass, SchedulePerson } from '@/components/schedule/types';
 
 /** One call time. Collapsed: time, class, coach, spots, light. Tapping expands the take in place. */
@@ -46,7 +46,7 @@ export const SessionRow = memo(function SessionRow({
 				<span className={clsx(full && 'opacity-45')}>
 					<span className="block font-display text-[1.6rem] font-bold leading-none sm:text-[1.9rem]">{t.clock}</span>
 					<span className="font-mono text-[0.68rem] uppercase text-muted">
-						{t.meridiem} · {minutesLabel(o.minutes)}
+						{t.meridiem} · {o.minutes}m
 					</span>
 				</span>
 				<span className={clsx('min-w-0', full && 'opacity-55')}>

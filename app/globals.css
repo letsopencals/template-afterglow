@@ -312,3 +312,8 @@ body {
 		padding-inline: 2.5rem;
 	}
 }
+
+/* Grid items may shrink below their content (horizontal scroll rows inside them must not widen the page). */
+.grid > * {
+	min-width: 0;
+}

@@ -45,7 +45,7 @@ export function SessionTake({ occurrence, cls, coach, onBooked }: { occurrence: 
 	};
 
 	return (
-		<div className="unfold relative border-t border-line bg-cream/60 px-4 pb-4 pt-5 sm:px-6">
+		<div className="unfold relative rounded-b-[inherit] border-t border-line bg-cream/60 px-4 pb-4 pt-5 sm:px-6">
 			{flash ? <span key={flash} aria-hidden className="shutter-flash pointer-events-none absolute inset-0 z-10 bg-white" /> : null}
 			<div className="grid gap-6 lg:grid-cols-12">
 				<div className="lg:col-span-4">

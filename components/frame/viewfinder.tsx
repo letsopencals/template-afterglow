@@ -10,6 +10,7 @@ export function Viewfinder({
 	readout,
 	inset = 'md',
 	tone = 'light',
+	readoutClassName,
 	className,
 }: {
 	rec?: boolean;
@@ -17,6 +18,7 @@ export function Viewfinder({
 	readout?: string;
 	inset?: 'sm' | 'md' | 'lg';
 	tone?: 'light' | 'dark';
+	readoutClassName?: string;
 	className?: string;
 }) {
 	const pad = inset === 'sm' ? 'inset-2.5' : inset === 'lg' ? 'inset-6 md:inset-10' : 'inset-4';
@@ -36,7 +38,7 @@ export function Viewfinder({
 				</span>
 			) : null}
 			{readout ? (
-				<span className={clsx('absolute font-mono text-[0.66rem] tracking-wider opacity-90', inset === 'sm' ? 'bottom-0.5 right-6' : 'bottom-1.5 right-9', tone === 'light' ? 'text-white' : 'text-night')}>
+				<span className={clsx('absolute font-mono text-[0.66rem] tracking-wider opacity-90', inset === 'sm' ? 'bottom-0.5 right-6' : 'bottom-1.5 right-9', tone === 'light' ? 'text-white' : 'text-night', readoutClassName)}>
 					{readout}
 				</span>
 			) : null}

@@ -195,8 +195,8 @@ export function ServiceBooker({
 	);
 
 	return (
-		<div className="grid gap-10 lg:grid-cols-12">
-			<div className="space-y-8 lg:col-span-8">
+		<div className="grid min-w-0 gap-10 lg:grid-cols-12">
+			<div className="min-w-0 space-y-8 lg:col-span-8">
 				{offering.series.length > 1 ? (
 					<Block n="01" title="Option">
 						<ChoiceRow

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 export function HeroVideo({ wide, vertical, poster }: { wide: string; vertical?: string; poster: string }) {
 	const ref = useRef<HTMLVideoElement>(null);
 	const [src, setSrc] = useState<string | null>(null);
+	const [posterOk, setPosterOk] = useState(true);
 	useEffect(() => {
 		const mq = window.matchMedia('(min-width: 768px)');
 		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -24,7 +25,7 @@ export function HeroVideo({ wide, vertical, poster }: { wide: string; vertical?:
 	return (
 		<>
 			{/* eslint-disable-next-line @next/next/no-img-element */}
-			<img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover" />
+			{posterOk ? <img src={poster} alt="" onError={() => setPosterOk(false)} className="absolute inset-0 h-full w-full object-cover" /> : null}
 			{src ? <video ref={ref} key={src} src={src} poster={poster} muted playsInline loop autoPlay preload="auto" className="absolute inset-0 h-full w-full object-cover" /> : null}
 		</>
 	);

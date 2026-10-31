@@ -57,7 +57,7 @@ export function BookerPage({ offerings, people, sites }: { offerings: BookerOffe
 
 			<div id="book" className="mt-12 scroll-mt-24">
 				<div className="grid gap-6 border-b border-line pb-8 md:grid-cols-12">
-					<div className="md:col-span-7">
+					<div className="min-w-0 md:col-span-7">
 						<h2 className="font-display text-4xl font-bold leading-tight">{active.title}</h2>
 						<p className="mt-2 text-lg text-ink-2">{active.tagline}</p>
 						<p className="mt-3 max-w-2xl text-muted">{active.description}</p>

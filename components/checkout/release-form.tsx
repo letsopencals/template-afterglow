@@ -197,7 +197,7 @@ export function ReleaseForm() {
 			<HoldTimer seconds={c.timeRemaining} onExtend={c.extendCart} className="!bg-night-2" />
 
 			<div className="container-x mt-10 grid gap-12 lg:grid-cols-12">
-				<div className="lg:col-span-8">
+				<div className="min-w-0 lg:col-span-8">
 					<div className="paper-grain rounded-[20px] border border-line p-5 shadow-[0_30px_60px_-40px_rgba(18,14,26,0.35)] sm:p-10">
 						<div className="flex flex-wrap items-start justify-between gap-4">
 							<div>
@@ -344,7 +344,7 @@ export function ReleaseForm() {
 					</div>
 				</div>
 
-				<aside className="lg:col-span-4">
+				<aside className="min-w-0 lg:col-span-4">
 					<p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted">The contact sheet</p>
 					<ul className="mt-2 divide-y divide-line">
 						{frames.map((f) => (
