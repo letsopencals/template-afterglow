@@ -10,6 +10,8 @@ export interface BookingView extends BookingMeta {
 	siteSlug: string | null;
 	siteName: string | null;
 	setName: string | null;
+	/** The set photo (or the category photo) from site copy. */
+	image: string | null;
 	whatToBring: string[];
 	wardrobe: string | null;
 	transit: string | null;
@@ -38,6 +40,7 @@ export function toBookingView(a: Appt): BookingView {
 		siteSlug: a.location?.slug ?? null,
 		siteName: site?.nickname ?? a.location?.title ?? null,
 		setName: setMeta(setKey)?.name ?? null,
+		image: setMeta(setKey)?.image ?? siteConfig.media.categories[meta.category] ?? null,
 		whatToBring: bring,
 		wardrobe: (key && (classMeta(key)?.wardrobe ?? serviceMeta(key)?.wardrobe)) || null,
 		transit: site?.transit ?? null,

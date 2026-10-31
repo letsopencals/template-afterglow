@@ -63,6 +63,8 @@ interface CheckoutContextValue {
 	setError: (error: string | null) => void;
 	handleSaveCustomer: (e: React.FormEvent) => Promise<void>;
 	handleSaveAnswers: (e: React.FormEvent) => Promise<void>;
+	/** The release form: save the customer, then the answers, in one submit. */
+	handleSign: (e: React.FormEvent) => Promise<void>;
 	handleStartCheckout: (providerName: string) => Promise<void>;
 	handleSubmitCheckout: (stripePaymentIntentId?: string) => Promise<void>;
 	extendCart: () => void;
@@ -203,6 +205,41 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 		[answers, questions, cartHeaders],
 	);
 
+	// Release form: customer + answers in one go (same calls as steps 1 and 2, in order).
+	const handleSign = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault();
+			setError(null);
+			setSubmitting(true);
+			try {
+				const customerPayload = customerId
+					? { customer: { kind: 'existing', customerId } }
+					: { customer: { kind: 'new', email, firstName: firstName || undefined, lastName: lastName || undefined } };
+				const res = await fetch('/api/checkout/save-customer', { method: 'POST', headers: cartHeaders(), body: JSON.stringify(customerPayload) });
+				if (!res.ok) {
+					const data = await res.json().catch(() => ({}));
+					throw new Error(data.error || 'We couldn’t save your details');
+				}
+				const saveResult = await res.json().catch(() => ({}));
+				if (saveResult.customerId) setCustomerId(saveResult.customerId);
+
+				const answerArray = questions
+					.filter((q) => answers[q.id] !== undefined && answers[q.id] !== '')
+					.map((q) => ({ questionId: q.id, question: q.translations?.[0]?.title ?? q.internalName, answer: answers[q.id] as string }));
+				if (answerArray.length) {
+					const r2 = await fetch('/api/checkout/save-answers', { method: 'POST', headers: cartHeaders(), body: JSON.stringify({ answers: answerArray }) });
+					if (!r2.ok && r2.status !== 204) throw new Error('We couldn’t save your answers');
+				}
+				setStep('payment-select');
+			} catch (err: unknown) {
+				setError(err instanceof Error ? err.message : 'An error occurred');
+			} finally {
+				setSubmitting(false);
+			}
+		},
+		[customerId, email, firstName, lastName, cartHeaders, questions, answers],
+	);
+
 	// Step 3: Start checkout with selected provider
 	const handleStartCheckout = useCallback(
 		async (providerName: string) => {
@@ -330,6 +367,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			setError,
 			handleSaveCustomer,
 			handleSaveAnswers,
+			handleSign,
 			handleStartCheckout,
 			handleSubmitCheckout,
 			extendCart,
@@ -355,6 +393,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			seconds,
 			handleSaveCustomer,
 			handleSaveAnswers,
+			handleSign,
 			handleStartCheckout,
 			handleSubmitCheckout,
 			extendCart,

@@ -19,11 +19,11 @@ export function Totals({ cart, currency, className }: { cart: CartWithDiscounts;
 			</div>
 			{discounts.map((d) => (
 				<div key={d.id} className="flex justify-between gap-4">
-					<dt className="flex items-center gap-2">
-						<span aria-hidden className="afterglow h-2 w-2 shrink-0 rounded-full" />
+					<dt className="flex min-w-0 flex-1 items-start gap-2">
+						<span aria-hidden className="afterglow mt-2 h-2 w-2 shrink-0 rounded-full" />
 						{d.title}
 					</dt>
-					<dd className="font-mono text-pink">−{formatPrice(d.totalAmount, currency)}</dd>
+					<dd className="whitespace-nowrap font-mono text-pink">−{formatPrice(d.totalAmount, currency)}</dd>
 				</div>
 			))}
 			{state.status === 'outranked' ? (
