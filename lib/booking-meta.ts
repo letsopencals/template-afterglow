@@ -3,12 +3,13 @@ import { classMeta, toneFor, serviceMeta, siteConfig, type Tone } from '@/lib/si
 
 /**
  * Turns an appointment (list, detail or order-embedded) into the facts the
- * account, the bib and the log show: the offering key, its category and
- * tone, the coach, whether it's Remote (and the live link), the site address,
- * the head count for a partner session, and where "Book again" goes.
+ * shot list, the call sheet and the roll show: the offering key, its category
+ * and tone, the coach or crew member, whether it's online (and the live link),
+ * the site address, the head count for a partner or duo session, and where
+ * "Book again" goes.
  *
- * Remote vs on-site comes from the booked location's `type`; the join link is
- * that location's `link`, set once on the Mettle Remote location in the dashboard.
+ * Online vs on-site comes from the booked location's `type`; the join link is
+ * that location's `link` (Afterglow has no online location at launch).
  */
 
 interface AddressFields {
