@@ -1,0 +1,295 @@
+@import 'tailwindcss';
+
+/*
+ * AFTERGLOW: "Call sheet". See DESIGN.md for the contract.
+ * Deco cream pages, golden-hour gradient, viewfinder brackets, grease pencil.
+ */
+@theme {
+	/* Surfaces */
+	--color-cream: #fff4ea;
+	--color-cream-2: #fbe7d6;
+	--color-cream-3: #f6dcc6;
+	--color-paper: #ffffff;
+	--color-night: #120e1a;
+	--color-night-2: #221b2e;
+	--color-night-3: #2f2640;
+
+	/* Ink */
+	--color-ink: #120e1a;
+	--color-ink-2: #3b3046;
+	--color-muted: #6e6178;
+	--color-dim: #a597ad;
+	--color-line: #ead6c6;
+	--color-line-night: #3a2f4a;
+
+	/* Light */
+	--color-peach: #ffb38a;
+	--color-pink: #ff5e8a;
+	--color-violet: #6a4bff;
+	--color-rec: #d7ff3a;
+	--color-gold: #f4a93b;
+	--color-danger: #d6264f;
+
+	/* Category gels */
+	--color-gel-ride: #ff3ea5;
+	--color-gel-sculpt: #ff8a5b;
+	--color-gel-flow: #f4a93b;
+	--color-gel-box: #6a4bff;
+	--color-gel-sweat: #00c2a8;
+	--color-gel-coaching: #120e1a;
+	--color-gel-content: #ff5e8a;
+	--color-gel-glow: #8e7cff;
+	--color-gel-bar: #b5651d;
+
+	--font-display: var(--font-syne), 'Syne', system-ui, sans-serif;
+	--font-sans: var(--font-outfit), 'Outfit', system-ui, sans-serif;
+	--font-mono: var(--font-fragment), 'Fragment Mono', ui-monospace, monospace;
+
+	--radius-card: 16px;
+	--radius-btn: 12px;
+
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ------------------------------------------------------------------ Base */
+
+html {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	scroll-padding-top: 5.5rem;
+}
+
+body {
+	background: var(--color-cream);
+	color: var(--color-ink);
+	font-family: var(--font-sans);
+	font-feature-settings: 'ss01';
+}
+
+::selection {
+	background: var(--color-pink);
+	color: white;
+}
+
+:focus-visible {
+	outline: 2px solid var(--color-violet);
+	outline-offset: 2px;
+}
+
+.font-display {
+	font-family: var(--font-display);
+	letter-spacing: -0.02em;
+}
+
+/* ------------------------------------------------------------------ Light */
+
+.afterglow {
+	background-image: linear-gradient(120deg, var(--color-peach), var(--color-pink) 55%, var(--color-violet));
+}
+
+.afterglow-text {
+	background-image: linear-gradient(100deg, var(--color-peach), var(--color-pink) 50%, var(--color-violet));
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+/* Hero scrim: a slow golden-hour drift over video. */
+.light-drift {
+	background-image: linear-gradient(115deg, rgba(255, 179, 138, 0.55), rgba(255, 94, 138, 0.35) 40%, rgba(106, 75, 255, 0.45) 80%, rgba(18, 14, 26, 0.6));
+	background-size: 220% 220%;
+	animation: drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+	from {
+		background-position: 0% 30%;
+	}
+	to {
+		background-position: 100% 70%;
+	}
+}
+
+/* ------------------------------------------------------------------ Placeholders */
+
+.image-placeholder {
+	background:
+		radial-gradient(120% 90% at 20% 10%, rgba(255, 179, 138, 0.55), transparent 60%),
+		radial-gradient(100% 80% at 90% 90%, rgba(106, 75, 255, 0.35), transparent 60%),
+		var(--color-cream-3);
+}
+
+.image-placeholder-night {
+	background:
+		radial-gradient(120% 90% at 20% 10%, rgba(255, 62, 165, 0.35), transparent 60%),
+		radial-gradient(100% 80% at 90% 90%, rgba(106, 75, 255, 0.35), transparent 60%),
+		var(--color-night-2);
+}
+
+/* ------------------------------------------------------------------ Motion */
+
+@keyframes rec-blink {
+	0%,
+	55% {
+		opacity: 1;
+	}
+	56%,
+	100% {
+		opacity: 0.15;
+	}
+}
+.rec-blink {
+	animation: rec-blink 1s steps(1, end) infinite;
+}
+
+@keyframes flash {
+	0% {
+		opacity: 0;
+	}
+	25% {
+		opacity: 0.95;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+.shutter-flash {
+	animation: flash 400ms ease-out both;
+}
+
+@keyframes grease-pop {
+	from {
+		opacity: 0;
+		transform: scale(0.86) rotate(-6deg);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) rotate(0deg);
+	}
+}
+.grease-pop {
+	animation: grease-pop 180ms var(--ease-pop) both;
+}
+
+@keyframes tick {
+	0% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-4px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+.count-tick {
+	animation: tick 260ms var(--ease-out);
+}
+
+@keyframes drawer-in {
+	from {
+		transform: translateX(24px);
+		opacity: 0;
+	}
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+.drawer-in {
+	animation: drawer-in 260ms var(--ease-out) both;
+}
+
+@keyframes rise {
+	from {
+		transform: translateY(16px);
+		opacity: 0;
+	}
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+.sheet-up {
+	animation: rise 240ms var(--ease-out) both;
+}
+
+@keyframes story-fill {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+
+/* Expanded schedule row. */
+@keyframes unfold {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+.unfold {
+	animation: unfold 220ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
+	}
+	.light-drift {
+		animation: none;
+	}
+}
+
+/* ------------------------------------------------------------------ Film */
+
+/* Sprocket holes along a film edge. */
+.sprockets {
+	background-image: radial-gradient(circle at center, var(--color-cream) 0 3px, transparent 3.5px);
+	background-size: 14px 10px;
+	background-repeat: repeat-x;
+	background-position: 0 center;
+}
+.sprockets-night {
+	background-image: radial-gradient(circle at center, var(--color-night) 0 3px, transparent 3.5px);
+	background-size: 14px 10px;
+	background-repeat: repeat-x;
+	background-position: 0 center;
+}
+
+.snap-row {
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
+.snap-row::-webkit-scrollbar {
+	display: none;
+}
+.snap-row > * {
+	scroll-snap-align: start;
+}
+
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+/* Lined paper for the release form and the call sheet. */
+.paper-grain {
+	background:
+		linear-gradient(0deg, rgba(18, 14, 26, 0.02), rgba(18, 14, 26, 0.02)),
+		var(--color-paper);
+}
