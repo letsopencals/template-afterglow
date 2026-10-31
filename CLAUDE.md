@@ -53,17 +53,18 @@ parent render. Define at module scope (or a separate file). Module-scope sibling
 helpers below a page are fine.
 
 **Use the shared UI primitives — don't hand-style buttons/inputs inline.**
-- `components/ui/button.tsx`: `<Button variant size fullWidth loading>`. Variants:
-  `primary` (ink slab, red lip), `chalk` (on rubber), `outline`, `outline-chalk`,
-  `ghost`, `plate` (yellow, the booking action: "Load the bar"). Sizes `sm|md|lg`.
-  Square (2px) slabs with a 2px bottom "plate lip"; no pills. Links that look like
-  buttons use `buttonClasses({ variant, size, fullWidth, className })`.
+- `components/ui/button.tsx`: `<Button variant size fullWidth loading dot>`. Variants:
+  `shutter` (night, with the shutter dot), `glow` (the afterglow gradient: Book /
+  Add to shot list), `outline`, `light` (on photos and night), `ghost`. Sizes
+  `sm|md|lg`. Soft 12px rectangles, never pills. Links that look like buttons use
+  `buttonClasses({ variant, size, fullWidth, className })`.
 - `components/ui/input.tsx` — `<Input>`, `<Textarea>`, `<Select>`, `<FieldLabel>`.
-- `components/ui/segmented.tsx` — plain radio-button rows (tier, site, length).
-- `components/ui/overlay.tsx` — the one overlay: `kind="drawer"` (the Bar, the menu)
-  or `kind="sheet"` (phone session panel, cancel dialog). Focus trap + scroll lock.
-- Brand pieces live in `components/brand/*` (plate, calibration strip, LED readout,
-  places meter, section head, logo). Never import a motion library.
+- `components/ui/choice.tsx` — `<ChoiceRow>`, plain radio-button rows (tier, site, length).
+- `components/ui/overlay.tsx` — the one overlay: `kind="drawer"` (the shot list, the
+  menu), `kind="sheet"` (cancel dialog) or `kind="full"` (the story viewer). Focus
+  trap + scroll lock.
+- Motifs live in `components/frame/*` (viewfinder, story ring, grease pencil,
+  film edge, slate section head, REC, logo). Never import a motion library.
 
 **Hooks are single-concern.** Split multi-purpose hooks so each has one
 responsibility and independent dependencies (see `hooks/use-checkout-questions.ts`,
@@ -79,7 +80,7 @@ composes the smaller ones.
 - Hoist static objects (default non-primitive props) to module-level `const`s
   instead of recreating them inline.
 - `React.memo` leaf components that take stable props and render often
-  (e.g. `components/floor/session-block.tsx`).
+  (e.g. `components/schedule/session-row.tsx`).
 - Prefer a ternary (`cond ? <x/> : null`) over `cond && <x/>` for conditional
   rendering, to avoid accidentally rendering `0`/`''`.
 
@@ -87,21 +88,121 @@ composes the smaller ones.
 
 - Load heavy / below-the-fold components with `next/dynamic`. Stripe is never
   in the initial bundle: it loads on demand inside
-  `components/checkout/checkout-view.tsx`.
+  `components/checkout/release-form.tsx`.
 - Import directly from module paths; avoid barrel/index re-export files that pull
   in more than you use.
 
-## AFTERGLOW
+## AFTERGLOW: content gym (Miami, USD, `America/New_York`)
 
-See the section below once the build lands (TODO).
+"You train. We shoot." South Beach (Mirror Hall, the Rooftop, the beach, the
+Afterglow Bar) and Wynwood (the Neon Room, the Ring, the Mural Floor, the Studio
+Wall, the café). Ten coaches in three tiers and six crew (photographers,
+filmmakers, a makeup artist). Weekly classes with **shot add-ons**, shoots with
+the crew, physique coaching at 30/60/90 min, glow (saunas, plunge, red light,
+compression, glam), bar tables and dated events. Seed dataset `content_gym`
+(backend). Design contract: **DESIGN.md** ("Call sheet": viewfinders, story
+rings, grease pencil, contact sheet, call sheet, golden hour).
+
+### Data model (`lib/catalog.ts`): derived from the API, keyed by slugs
+- **Category** = the product's collection (`ride`, `sculpt`, `flow`, `box`,
+  `sweat`, `coaching`, `content`, `glow`, `bar`, `events`). Site copy wins when
+  it knows the product (`siteConfig.classes[key].category` /
+  `services[key].category`): the Studio Wall sits in the `glow` collection but is
+  shown as `content`, and the First Glow Tour is `intro`. The category sets the
+  **tone** (colour).
+- **Kind**: `event` (events), `class` (a `siteConfig.classes` key, or a
+  timetable category with >1 spot and one coach per variant), else `service`
+  (booked in the service booker).
+- **Class** = product group; each variant is one weekly **series** (class ×
+  site × coach), slug `<class-key>-<site>-<coach>` (`glute-lab-south-beach-valentina`).
+  Site and coach come from the variant's own `locations` / `staffMembers`. The
+  **set** (room) comes from `siteConfig.classes[key].set` (sets aren't API entities).
+- **Service** = product group; variants are options (`pt-coach|senior|head` under
+  `physique-coaching` via `prefixes: ['pt-']`; `infrared-suite-1/-2`;
+  `compression-<site>`; `bar-table-south-beach` / `cafe-table-wynwood` under `bar-table`).
+- **People** by staff slug (`siteConfig.people`: role, tier, handle, title, bio).
+  Coaches first, then crew.
+- **Shots** are add-ons recognised by title (`siteConfig.shots`, `shotMeta(title)`):
+  Class Clips, Photo Set, Slow-mo Reel, Raw Camera Roll. Everything else is an extra.
+
+### Availability (never per day or per cell from the client)
+- **Schedule** (`getTimetable`, `lib/timetable.ts`): one merged-availability call
+  per class series (6 at a time), `unstable_cache` 60 s, tag `availability`.
+  **Full inference** as in Tensile/METTLE; Miami local-time keys, so the March and
+  November DST switches don't create twins (tests). Each occurrence carries its
+  `set` and `golden` (`'morning' | 'evening' | null`): the golden hour it overlaps
+  on an **outdoor** set, from `lib/sun.ts` (NOAA sunrise/sunset, tests).
+- **Service booker** (`/api/ranges` → `getServiceRanges`): one merged call per
+  (variant, person?, site?) across the horizon, cached 60 s with tag
+  `availability`. `lib/slots.ts` derives days and start times on the client.
+- `revalidateTag('availability')` runs after book, cart-item removal, cancel and
+  reschedule (the API routes); the schedule also `router.refresh()`es after a book.
+
+### Booking, the shot list and checkout
+- Everything goes through `useAddToShotList()` (`hooks/use-add-to-shot-list.ts`):
+  `POST /api/book` per session (UTC slot, `staffMemberId`, `locationId`,
+  `numberOfAttendees` (the party size for tables), `addOns`, `people` for partner
+  and duo → `customAttributes.people = "2"`), then the header flashes and the
+  Shot List drawer opens.
+- **Shot List** (`lib/shot-list.ts`, `components/shotlist/*`): the cart as a
+  contact sheet, one numbered frame per session with the shots circled. **Totals
+  always come from the cart.** Zero-amount applied discounts are hidden (Shot on
+  us can return 0 on a line with no shots).
+- **Offers**: per line the biggest non-combinable one wins (First glow 40% on a
+  first order of classes; Early light 20% on classes starting Mon–Fri 6–8 AM;
+  `GLOW15`). **Shot on us** is automatic and combinable: 30% off the shot add-ons
+  only. An outranked code shows as "a better offer already applies"
+  (`lib/discount-state.ts`).
+- **Checkout** (`/checkout`, `components/checkout/release-form.tsx`): the shot
+  list as a film strip on top; one release form with *The talent* and *The
+  release* (questions; answers sent as `{questionId, question, answer}`) signed
+  with one submit (`handleSign` in the checkout context: save-customer, then
+  save-answers); then payment (Stripe, pay at the desk, or the no-payment path for
+  the free First Glow Tour). Stripe's publishable key comes only from checkout
+  start (`paymentData.publishableKey`).
+- **Thank-you** (`/thank-you`): the call sheet (`components/callsheet/*`) and a
+  9:16 story card drawn on a canvas. Without a session it asks for a sign-in code.
+- **Account** (`/account`): **Your roll** (`lib/roll.ts`): up next as call sheets,
+  past sessions on a contact sheet with an honest delivery state (`editsState`:
+  in the edit until the shot turnaround passes, then sent; a shoot always
+  delivers). `/account/appointments/[id]` moves (same person and site,
+  `ReschedulePicker`) or cancels; orders and settings.
+- **Glow Pass** is a preview only ("Coming soon"): no sign-up form; the CTA is the
+  free First Glow Tour.
+
+### URLs
+- Schedule: `lib/schedule-url.ts` `scheduleHref({ day, site, type, class, coach,
+  occ })`; `s=<seriesSlug>@<startISO>` opens that row expanded; `light=golden`
+  filters to golden-hour sessions.
+- Booker pages: `/shoots|/coaching|/glow|/bar?service=<key>&who=<staff-slug>#book`.
+- `/preview/call-sheet` and `/preview/roll` render fixtures (dev, or `AFTERGLOW_PREVIEW=1`).
+
+### Times
+Always Miami: everything renders in `siteConfig.timezone` with `lib/when.ts`
+(12 h, `en-US`), on the server and in the browser.
+
+### Auth
+Passwordless only: `/login` (email → 6-digit code) and `/link/[token]` magic
+links. The middleware refreshes tokens and protects `/account/*`.
+
+### Gotchas
+- The SDK runs with `throwOnError: true`; routes pass errors through `handleApiError`.
+- Next 15 `params`/`searchParams` are Promises.
+- Media lives in `public/images/*` and `public/videos/*` (paths in
+  `siteConfig.media`, `sets`, `sites[*].images` and `stories`); `SafeImage` hides a
+  missing file and the gradient placeholder shows. `images.unoptimized: true`.
+- The story viewer and the hero set `muted` through a ref before `play()`, or
+  autoplay is blocked.
+- Quote bracketed paths in shell commands.
 
 ## Verifying changes
 
 - `npm run typecheck`, `npm run lint` and `npm test` (vitest: timetable,
-  catalog, floor, rack, bar, log, guards) must pass.
+  sun, catalog, slots, roll, guards) must pass.
 - `npm run build` must pass before release. Don't `next build` while a
   `next dev` runs in this folder (shared `.next`); build in a copy.
-- Smoke test against a seeded `boutique_gym` store: the Floor shows today's
-  lanes with places and some Full blocks pointing to "next with space"; a class
-  and a 60-min PT load onto the Bar; checkout with pay-at-the-desk lands on the
-  bib; the log shows the sessions and moves one.
+- Smoke test against a seeded `content_gym` store: the schedule shows today's
+  sets with spots and some Full rows pointing to "next with space"; the rooftop
+  sunset class has a golden-hour badge; a class with a Photo Set and a 60-min
+  coaching session land on the shot list; the release form with pay-at-the-desk
+  lands on the call sheet; Your roll shows the sessions and moves one.
