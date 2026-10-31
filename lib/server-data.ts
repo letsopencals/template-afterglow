@@ -13,6 +13,7 @@ import {
 	type StaffMemberListItemResponse,
 	type LocationDetailResponse,
 	type CurrentAvailabilitySlot,
+	type AddOnListItemResponse,
 } from '@opencals/storefront-sdk';
 import { publicPayload } from '@/lib/public-payload';
 import { buildCatalog, type Catalog, type Series } from '@/lib/catalog';
@@ -69,6 +70,16 @@ export const getProduct = cache(async (slug: string): Promise<ProductListItemRes
 });
 
 /** All visible collections (with their product references). Empty on failure. */
+/** Add-ons offered with one product (by slug): the bar menu and the shot add-ons. */
+export const getAddOnsForProduct = cache(async (slug: string): Promise<AddOnListItemResponse[]> => {
+	try {
+		const { data } = await ProductService.listAddOnsBySlug({ path: { slug } });
+		return publicPayload(Array.isArray(data) ? data : []);
+	} catch {
+		return [];
+	}
+});
+
 export const getCollections = cache(async (): Promise<ProductCollectionResponse[]> => {
 	try {
 		const { data } = await ProductCollectionService.list({ query: { take: 50 } });
@@ -172,7 +183,7 @@ async function timetableSeries(): Promise<Series[]> {
 	return (await getCatalog()).classes.flatMap((c) => c.series);
 }
 
-const cachedTimetable = unstable_cache(async () => loadOccurrences(await timetableSeries(), true), ['mettle-timetable-v1'], {
+const cachedTimetable = unstable_cache(async () => loadOccurrences(await timetableSeries(), true), ['afterglow-timetable-v1'], {
 	revalidate: 60,
 	tags: ['availability', 'timetable'],
 });
@@ -206,7 +217,7 @@ async function eventSeries(): Promise<Series[]> {
 // Events are never inferred Full: a sold-out date just isn't returned.
 const cachedEvents = unstable_cache(
 	async () => loadOccurrences(await eventSeries(), true, EVENT_HORIZON_DAYS),
-	['mettle-events-v1'],
+	['afterglow-events-v1'],
 	{ revalidate: 60, tags: ['availability', 'events'] },
 );
 
@@ -261,6 +272,6 @@ export const getServiceRanges = unstable_cache(
 		});
 		return toRanges(Array.isArray(data) ? data : []);
 	},
-	['mettle-service-ranges-v1'],
+	['afterglow-service-ranges-v1'],
 	{ revalidate: 60, tags: ['availability'] },
 );

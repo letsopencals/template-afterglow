@@ -33,6 +33,7 @@ export interface AppointmentLike {
 		image?: { url?: string | null } | null;
 	} | null;
 	customAttributes?: Record<string, string> | null;
+	addOns?: Array<{ quantity?: number | null; addOn?: { title?: string | null } | null }> | null;
 	product?: {
 		title?: string | null;
 		variantTitle?: string | null;
@@ -51,9 +52,9 @@ export interface AppointmentLike {
 
 export interface BookingMeta {
 	title: string;
-	/** Offering key (`barbell-club`, `pt-coach`, `deadlift-clinic`), from the product slug. */
+	/** Offering key (`glute-lab`, `physique-coaching`, `event-sunset-sessions`), from the product slug. */
 	offeringKey: string | null;
-	/** Category slug from the template's own key lists (`strength`…), `coaching` when unknown. */
+	/** Category slug from the template's own key lists (`sculpt`…), `coaching` when unknown. */
 	category: string;
 	tone: Tone;
 	variant: string | null;
@@ -119,10 +120,9 @@ export function getBookingMeta(appt: AppointmentLike): BookingMeta {
 
 function bookAgain(key: string | null, category: string, isClass: boolean): string {
 	if (isClass && key) return `/schedule?class=${encodeURIComponent(key)}`;
-	if (category === 'events') return '/events';
-	if (category === 'recovery') return key ? `/recovery?service=${key}` : '/recovery';
-	if (category === 'lab') return key ? `/lab?service=${key}` : '/lab';
-	return key ? `/coaching?service=${key}` : '/coaching';
+	if (category === 'events' || category === 'bar') return '/bar';
+	const page = category === 'content' || category === 'intro' ? '/shoots' : category === 'glow' ? '/glow' : '/coaching';
+	return key ? `${page}?service=${encodeURIComponent(key)}#book` : page;
 }
 
 export type JoinState = 'early' | 'open' | 'ended';
