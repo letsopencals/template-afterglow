@@ -1,7 +1,7 @@
 import { localParts, localToUtc } from '@/lib/timetable';
 
 /**
- * The slot rack: bookable start times derived on the client from one set of
+ * The service booker: bookable start times derived on the client from one set of
  * free windows (merged availability across the whole horizon). A day change
  * never refetches. Starts sit on a local-time grid (every `stepMin` from
  * midnight), so 07:00, 07:30… rather than 07:13.
@@ -15,7 +15,7 @@ export interface FreeRange {
 	staffMemberIds: string[];
 }
 
-export interface RackStart {
+export interface SlotStart {
 	start: number;
 	end: number;
 	/** Coach for this start (the first free one when "any coach"). */
@@ -36,10 +36,10 @@ export interface StartOptions {
 	places?: number;
 }
 
-export function startsFrom(ranges: readonly FreeRange[], { durationMin, stepMin, now, advanceSeconds = 0, places = 1 }: StartOptions): RackStart[] {
+export function startsFrom(ranges: readonly FreeRange[], { durationMin, stepMin, now, advanceSeconds = 0, places = 1 }: StartOptions): SlotStart[] {
 	const len = durationMin * 60_000;
 	const earliest = now + advanceSeconds * 1000;
-	const byStart = new Map<number, RackStart>();
+	const byStart = new Map<number, SlotStart>();
 	for (const r of ranges) {
 		if (r.maxAttendees - r.attendees < places) continue;
 		// First grid point at or after the range start, in local time.
@@ -59,8 +59,8 @@ export function startsFrom(ranges: readonly FreeRange[], { durationMin, stepMin,
 }
 
 /** Starts grouped by local date. */
-export function startsByDay(starts: readonly RackStart[]): Record<string, RackStart[]> {
-	const out: Record<string, RackStart[]> = {};
+export function startsByDay(starts: readonly SlotStart[]): Record<string, SlotStart[]> {
+	const out: Record<string, SlotStart[]> = {};
 	for (const s of starts) (out[s.localDate] ??= []).push(s);
 	return out;
 }
@@ -77,5 +77,5 @@ export function priceFor(unitPrice: number, baseMin: number, lengthMin: number):
 	return Math.ceil(lengthMin / baseMin) * unitPrice;
 }
 
-/** UTC instant for a local date + "HH:mm" (re-exported for the rack UI). */
+/** UTC instant for a local date + "HH:mm" (re-exported for the booker UI). */
 export { localToUtc };

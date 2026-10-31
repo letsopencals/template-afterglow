@@ -12,7 +12,7 @@ const range = (d: string, from: string, to: string, extra: Partial<{ attendees: 
 	...extra,
 });
 
-describe('slot rack starts', () => {
+describe('booker starts', () => {
 	const now = at('2026-11-02', '05:00');
 
 	it('puts starts on the local half-hour grid inside each free window', () => {
