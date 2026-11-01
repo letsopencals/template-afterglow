@@ -1,4 +1,4 @@
-import { OpencalsApiError } from '@opencals/storefront-sdk';
+import { OpencalsApiError, type CheckoutErrorResponse } from '@opencals/storefront-sdk';
 import { NextResponse } from 'next/server';
 
 
@@ -6,7 +6,7 @@ export function handleApiError(err: unknown, fallbackMessage = 'Internal server 
 	if (err instanceof OpencalsApiError) {
 		// Checkout conflicts carry more than a message: the 409 CART_ALREADY_CHECKED_OUT body has the `orderId`,
 		// the 402 PAYMENT_NOT_AUTHORIZED body the provider's `paymentStatus`.
-		const extra = err.body ?? {};
+		const extra = (err.body ?? {}) as Partial<CheckoutErrorResponse>;
 		const fieldErrors = err.toFieldErrors();
 		return NextResponse.json(
 			{

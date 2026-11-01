@@ -16,6 +16,9 @@ import type {
 	CheckoutCustomer,
 	CheckoutQuestionAnswer,
 	CheckoutQuestionResponse as CheckoutQuestion,
+	CheckoutErrorCode,
+	CheckoutErrorResponse,
+	PaymentProviderName,
 	SaveCustomerResponse,
 	StartCheckout,
 } from '@opencals/storefront-sdk';
@@ -23,16 +26,13 @@ import { awaitingOfAll, saveHandoff } from '@/lib/booking-state';
 
 export type CheckoutStep = 'customer' | 'questions' | 'payment-select' | 'payment';
 
-/** A payment provider's name, as the providers list, checkout start and its response spell it. */
-export type ProviderName = StartCheckout['provider'];
-
 /** A failed checkout call, with the API's machine-readable `code` (and the order a checked-out cart became). */
 class CheckoutRequestError extends Error {
 	constructor(
 		message: string,
 		readonly status: number,
-		readonly code?: string,
-		readonly orderId?: string,
+		readonly code?: CheckoutErrorCode,
+		readonly orderId?: CheckoutErrorResponse['orderId'],
 	) {
 		super(message);
 		this.name = 'CheckoutRequestError';
@@ -48,7 +48,8 @@ async function postCheckout<T>(url: string, headers: Record<string, string>, bod
 	for (let attempt = 0; ; attempt++) {
 		const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
 		if (res.ok) return (await res.json()) as T;
-		const data = (await res.json().catch(() => ({}))) as { error?: unknown; code?: unknown; orderId?: unknown };
+		// `/api/*` error JSON: `error` is the message, `code`/`orderId` come from the API's checkout error body.
+		const data = (await res.json().catch(() => ({}))) as { error?: unknown } & Partial<CheckoutErrorResponse>;
 		const code = typeof data.code === 'string' ? data.code : undefined;
 		if (code === 'CHECKOUT_IN_PROGRESS' && attempt < IN_PROGRESS_RETRIES) {
 			await new Promise((r) => setTimeout(r, RETRY_MS));
@@ -64,7 +65,7 @@ interface CheckoutContextValue {
 	step: CheckoutStep;
 	error: string | null;
 	/** The API's reason for the last checkout failure, e.g. `CART_EXPIRED`. */
-	errorCode: string | null;
+	errorCode: CheckoutErrorCode | null;
 	submitting: boolean;
 	checkoutComplete: boolean;
 
@@ -84,7 +85,7 @@ interface CheckoutContextValue {
 
 	// Payment
 	providers: CustomerProviderCatalogItem[];
-	selectedProvider: ProviderName | null;
+	selectedProvider: PaymentProviderName | null;
 	paymentData: CheckoutStartResponse | null;
 
 	// Cart info
@@ -101,7 +102,7 @@ interface CheckoutContextValue {
 	handleSaveAnswers: (e: React.FormEvent) => Promise<void>;
 	/** The release form: save the customer, then the answers, in one submit. */
 	handleSign: (e: React.FormEvent) => Promise<void>;
-	handleStartCheckout: (providerName: ProviderName) => Promise<void>;
+	handleStartCheckout: (providerName: PaymentProviderName) => Promise<void>;
 	handleSubmitCheckout: (stripePaymentIntentId?: string) => Promise<boolean>;
 	/** After CART_EXPIRED: drop the cart and go back to the schedule. */
 	restartFromSchedule: () => void;
@@ -117,7 +118,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
 	const [step, setStep] = useState<CheckoutStep>('customer');
 	const [error, setError] = useState<string | null>(null);
-	const [errorCode, setErrorCode] = useState<string | null>(null);
+	const [errorCode, setErrorCode] = useState<CheckoutErrorCode | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [checkoutComplete, setCheckoutComplete] = useState(false);
 
@@ -147,7 +148,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 
 	// Payment
-	const [selectedProvider, setSelectedProvider] = useState<ProviderName | null>(null);
+	const [selectedProvider, setSelectedProvider] = useState<PaymentProviderName | null>(null);
 	const [paymentData, setPaymentData] = useState<CheckoutStartResponse | null>(null);
 
 	// Redirect if no cart — but only once CartProvider has read the stored cart id
@@ -362,7 +363,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 	// a card form (`internal`), a redirect, or nothing to collect online (`manual`: desk, bank transfer,
 	// invoice; `none`: nothing to pay), which places the order straight away.
 	const handleStartCheckout = useCallback(
-		async (providerName: ProviderName) => {
+		async (providerName: PaymentProviderName) => {
 			setError(null);
 			setErrorCode(null);
 			setSubmitting(true);

@@ -5,8 +5,8 @@ import {
 	type AppointmentDateRangeSlot,
 	type CheckoutQuestionAnswer,
 	type CreateAppointmentAddOn,
-	type ExistingOrderCustomer,
-	type NewOrderCustomer,
+	type ExistingAppointmentCustomer,
+	type NewAppointmentCustomer,
 } from '@opencals/storefront-sdk';
 import { getAccessToken } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 			slot: AppointmentDateRangeSlot;
 			numberOfAttendees?: number;
 			addOns?: CreateAppointmentAddOn[];
-			customer?: ExistingOrderCustomer | NewOrderCustomer;
+			customer?: ExistingAppointmentCustomer | NewAppointmentCustomer;
 			checkoutQuestionAnswers?: CheckoutQuestionAnswer[];
 			/** Privates: "2" for a duet. Sent as appointment customAttributes.people. */
 			people?: unknown;
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
 								: {
 										externalId: ('email' in customer ? customer.email : undefined) ?? '',
 										email: ('email' in customer ? customer.email : undefined) ?? '',
-										firstName: customer.firstName,
-										lastName: customer.lastName,
+										firstName: 'firstName' in customer ? customer.firstName : undefined,
+										lastName: 'lastName' in customer ? customer.lastName : undefined,
 									},
 					}
 				: {}),
