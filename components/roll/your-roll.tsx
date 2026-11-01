@@ -6,7 +6,7 @@ import { awaitingLabel } from '@/lib/booking-state';
 import useSWR from 'swr';
 import { clsx } from 'clsx';
 import { useSession } from 'next-auth/react';
-import type { AppointmentListItemResponse } from '@opencals/storefront-sdk';
+import type { AppointmentListResponse } from '@opencals/storefront-sdk';
 import { fetcher } from '@/lib/fetcher';
 import { toBookingView, type BookingView } from '@/lib/booking-view';
 import { editsState, rollStats, splitRoll } from '@/lib/roll';
@@ -26,8 +26,8 @@ export const BOOKINGS_KEY = '/api/account/appointments?take=100&orderBy=from&ord
 /** Your roll: loads the customer's bookings and renders the view. */
 export function YourRoll() {
 	const { data: session } = useSession();
-	const { data, error, isLoading, mutate } = useSWR<{ data: AppointmentListItemResponse[] }>(BOOKINGS_KEY, fetcher, { revalidateOnFocus: false });
-	const views = useMemo(() => (data?.data ?? []).map((a) => toBookingView(a as Parameters<typeof toBookingView>[0])), [data]);
+	const { data, error, isLoading, mutate } = useSWR<AppointmentListResponse>(BOOKINGS_KEY, fetcher, { revalidateOnFocus: false });
+	const views = useMemo(() => (data?.data ?? []).map((a) => toBookingView(a)), [data]);
 	if (error && !data)
 		return (
 			<div className="container-x py-10">

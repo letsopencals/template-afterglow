@@ -24,6 +24,7 @@ describe('paymentLabel', () => {
 		expect(paymentLabel({ isFullyPaid: true, paymentStatus: 'paid' })).toBe('Paid');
 		expect(paymentLabel({ paymentStatus: 'partially-paid' })).toBe('Part paid');
 		expect(paymentLabel({ paymentStatus: 'unpaid' })).toBe('Payment due');
+		// @ts-expect-error a status newer than the SDK union still reads as due
 		expect(paymentLabel({ paymentStatus: 'something-new' })).toBe('Payment due');
 	});
 });

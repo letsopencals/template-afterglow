@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import useSWR, { mutate as globalMutate } from 'swr';
-import type { AppointmentDetailResponse } from '@opencals/storefront-sdk';
+import type { AppointmentDateRangeSlot, AppointmentDetailResponse } from '@opencals/storefront-sdk';
 import { fetcher } from '@/lib/fetcher';
 import { onSessionExpired } from '@/lib/session-expired';
 import { toBookingView } from '@/lib/booking-view';
@@ -38,12 +38,12 @@ export function AppointmentDetail({ id, initialAction }: { id: string; initialAc
 
 	if (error && !appt) return <AccountError what="this booking" onRetry={() => void mutate()} />;
 	if (isLoading || !appt || !now) return <AccountLoading label="Loading the booking" />;
-	const v = toBookingView(appt as Parameters<typeof toBookingView>[0]);
+	const v = toBookingView(appt);
 	const w = changeWindow(appt, now.getTime());
 	const past = v.start <= now.getTime();
 	const edits = editsState(v, now.getTime());
 
-	const change = async (kind: 'cancel' | 'reschedule', slot?: Record<string, string | null>) => {
+	const change = async (kind: 'cancel' | 'reschedule', slot?: AppointmentDateRangeSlot) => {
 		setPending(true);
 		setMessage(null);
 		try {
@@ -128,7 +128,7 @@ export function AppointmentDetail({ id, initialAction }: { id: string; initialAc
 						{moving ? (
 							<div className="mt-6 border-t border-line pt-5">
 								<h2 className="mb-4 font-display text-2xl font-bold">Pick a new call time</h2>
-								<ReschedulePicker appt={appt as Parameters<typeof ReschedulePicker>[0]['appt']} pending={pending} onMove={(slot) => void change('reschedule', slot)} />
+								<ReschedulePicker appt={appt} pending={pending} onMove={(slot) => void change('reschedule', slot)} />
 							</div>
 						) : null}
 					</div>

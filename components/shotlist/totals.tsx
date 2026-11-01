@@ -1,12 +1,12 @@
 'use client';
 
 import { clsx } from 'clsx';
-import type { CartWithDiscounts } from '@/types/discount';
+import type { CartResponse } from '@opencals/storefront-sdk';
 import { formatPrice } from '@/lib/format';
 import { codeState } from '@/lib/discount-state';
 
 /** Subtotal, each applied offer and the total, exactly as the cart returns them. */
-export function Totals({ cart, currency, className }: { cart: CartWithDiscounts; currency: string; className?: string }) {
+export function Totals({ cart, currency, className }: { cart: CartResponse; currency: string; className?: string }) {
 	const state = codeState(cart);
 	// "Shot on us" can come back with a zero amount on a line with no shots: hide it.
 	const discounts = (cart.appliedDiscounts ?? []).filter((d) => d.totalAmount > 0);

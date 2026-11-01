@@ -3,22 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import type { OrderListItemResponse } from '@opencals/storefront-sdk';
+import type { OrderListResponse } from '@opencals/storefront-sdk';
 import { fetcher } from '@/lib/fetcher';
 import { formatPrice } from '@/lib/format';
 import { dayLabel } from '@/lib/when';
 import { AccountError, AccountLoading } from '@/components/roll/states';
 import { paymentLabel } from '@/lib/booking-state';
 
-interface OrderPage {
-	data: OrderListItemResponse[];
-	meta: { page: number; hasNextPage: boolean; hasPreviousPage: boolean };
-}
-
 /** Every order, newest first, as ruled log lines. */
 export function OrdersView() {
 	const [page, setPage] = useState(1);
-	const { data, error, isLoading, mutate } = useSWR<OrderPage>(`/api/account/orders?take=15&page=${page}`, fetcher, { revalidateOnFocus: false, keepPreviousData: true });
+	const { data, error, isLoading, mutate } = useSWR<OrderListResponse>(`/api/account/orders?take=15&page=${page}`, fetcher, { revalidateOnFocus: false, keepPreviousData: true });
 	const orders = data?.data ?? [];
 	if (error && !data) return <AccountError what="your orders" onRetry={() => void mutate()} />;
 	if (isLoading && !data) return <AccountLoading label="Loading orders" />;

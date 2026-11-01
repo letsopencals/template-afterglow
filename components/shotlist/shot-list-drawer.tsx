@@ -12,7 +12,7 @@ import { FrameCard } from '@/components/shotlist/frame';
 import { Totals } from '@/components/shotlist/totals';
 import { PromoCode } from '@/components/shotlist/promo-code';
 import { HoldTimer } from '@/components/shotlist/hold-timer';
-import { framesFor, shotCount, type CartItemLike } from '@/lib/shot-list';
+import { framesFor, shotCount } from '@/lib/shot-list';
 
 /** The Shot List: the cart as a contact sheet. */
 export function ShotListDrawer() {
@@ -20,7 +20,7 @@ export function ShotListDrawer() {
 	const { cart, removeItem, timeRemaining, extendCart } = useCart();
 	const { currency } = useSettings();
 	const [removing, setRemoving] = useState<string | null>(null);
-	const frames = useMemo(() => framesFor((cart?.items ?? []) as unknown as CartItemLike[]), [cart?.items]);
+	const frames = useMemo(() => framesFor(cart?.items ?? []), [cart?.items]);
 	const shots = shotCount(frames);
 	const close = () => setOpen(false);
 	return (

@@ -13,19 +13,18 @@ import type {
 	CheckoutResponse,
 	SubmitCheckout,
 	CartItem,
+	CheckoutCustomer,
+	CheckoutQuestionAnswer,
 	CheckoutQuestionResponse as CheckoutQuestion,
+	SaveCustomerResponse,
+	StartCheckout,
 } from '@opencals/storefront-sdk';
 import { awaitingOfAll, saveHandoff } from '@/lib/booking-state';
 
 export type CheckoutStep = 'customer' | 'questions' | 'payment-select' | 'payment';
 
-// The backend can override the requested provider with the "no payment required" fallback when nothing
-// is collectible. This template's pinned SDK union predates that value, so accept a widened string here
-// (no `as` assertion; SDK types stay authoritative) and compare against the known fallback name.
-const NO_PAYMENT_REQUIRED_PROVIDER = 'no_payment_required';
-function isNoPaymentRequired(provider: string): boolean {
-	return provider === NO_PAYMENT_REQUIRED_PROVIDER;
-}
+/** A payment provider's name, as the providers list, checkout start and its response spell it. */
+export type ProviderName = StartCheckout['provider'];
 
 /** A failed checkout call, with the API's machine-readable `code` (and the order a checked-out cart became). */
 class CheckoutRequestError extends Error {
@@ -85,7 +84,7 @@ interface CheckoutContextValue {
 
 	// Payment
 	providers: CustomerProviderCatalogItem[];
-	selectedProvider: string | null;
+	selectedProvider: ProviderName | null;
 	paymentData: CheckoutStartResponse | null;
 
 	// Cart info
@@ -102,7 +101,7 @@ interface CheckoutContextValue {
 	handleSaveAnswers: (e: React.FormEvent) => Promise<void>;
 	/** The release form: save the customer, then the answers, in one submit. */
 	handleSign: (e: React.FormEvent) => Promise<void>;
-	handleStartCheckout: (providerName: string) => Promise<void>;
+	handleStartCheckout: (providerName: ProviderName) => Promise<void>;
 	handleSubmitCheckout: (stripePaymentIntentId?: string) => Promise<boolean>;
 	/** After CART_EXPIRED: drop the cart and go back to the schedule. */
 	restartFromSchedule: () => void;
@@ -148,7 +147,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 
 	// Payment
-	const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+	const [selectedProvider, setSelectedProvider] = useState<ProviderName | null>(null);
 	const [paymentData, setPaymentData] = useState<CheckoutStartResponse | null>(null);
 
 	// Redirect if no cart — but only once CartProvider has read the stored cart id
@@ -176,7 +175,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			setSubmitting(true);
 
 			try {
-				const customerPayload = customerId
+				const customerPayload: CheckoutCustomer = customerId
 					? { customer: { kind: 'existing', customerId } }
 					: { customer: { kind: 'new', email, firstName: firstName || undefined, lastName: lastName || undefined } };
 
@@ -191,7 +190,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 					throw new Error(data.error || 'Failed to save customer info');
 				}
 
-				const saveResult = await res.json();
+				const saveResult: SaveCustomerResponse = await res.json();
 				if (saveResult.customerId) {
 					setCustomerId(saveResult.customerId);
 				}
@@ -217,7 +216,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
 			try {
 				// The API wants the question text alongside each answer (kept as a historical record).
-				const answerArray = questions
+				const answerArray: CheckoutQuestionAnswer[] = questions
 					.filter((q) => answers[q.id] !== undefined && answers[q.id] !== '')
 					.map((q) => ({
 						questionId: q.id,
@@ -252,7 +251,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			setError(null);
 			setSubmitting(true);
 			try {
-				const customerPayload = customerId
+				const customerPayload: CheckoutCustomer = customerId
 					? { customer: { kind: 'existing', customerId } }
 					: { customer: { kind: 'new', email, firstName: firstName || undefined, lastName: lastName || undefined } };
 				const res = await fetch('/api/checkout/save-customer', { method: 'POST', headers: cartHeaders(), body: JSON.stringify(customerPayload) });
@@ -260,10 +259,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 					const data = await res.json().catch(() => ({}));
 					throw new Error(data.error || 'We couldn’t save your details');
 				}
-				const saveResult = await res.json().catch(() => ({}));
+				const saveResult: SaveCustomerResponse = await res.json().catch(() => ({}));
 				if (saveResult.customerId) setCustomerId(saveResult.customerId);
 
-				const answerArray = questions
+				const answerArray: CheckoutQuestionAnswer[] = questions
 					.filter((q) => answers[q.id] !== undefined && answers[q.id] !== '')
 					.map((q) => ({ questionId: q.id, question: q.translations?.[0]?.title ?? q.internalName, answer: answers[q.id] as string }));
 				if (answerArray.length) {
@@ -363,7 +362,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 	// a card form (`internal`), a redirect, or nothing to collect online (`manual`: desk, bank transfer,
 	// invoice; `none`: nothing to pay), which places the order straight away.
 	const handleStartCheckout = useCallback(
-		async (providerName: string) => {
+		async (providerName: ProviderName) => {
 			setError(null);
 			setErrorCode(null);
 			setSubmitting(true);
@@ -371,7 +370,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
 			let placed = false;
 			try {
-				const startPayload: Record<string, unknown> = { provider: providerName };
+				const startPayload: StartCheckout = { provider: providerName };
 				if (customerId) {
 					startPayload.customer = { kind: 'existing', customerId };
 				}
@@ -381,8 +380,8 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
 				// Key off the RESPONSE provider: when nothing is collectible the backend overrides the
 				// requested one (e.g. Stripe) with "no payment required".
-				const responseProvider = data.provider as string;
-				const mode = isNoPaymentRequired(responseProvider)
+				const responseProvider = data.provider;
+				const mode = responseProvider === 'no_payment_required'
 					? 'none'
 					: (providers.find((p) => p.name === responseProvider) ?? providers.find((p) => p.name === providerName))?.checkoutMode;
 				if (responseProvider !== providerName) setSelectedProvider(responseProvider);
@@ -411,7 +410,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 		router.push('/schedule');
 	}, [clearCart, router]);
 
-	const items = useMemo(() => (cart?.items ?? []) as CartItem[], [cart?.items]);
+	const items = useMemo<CartItem[]>(() => cart?.items ?? [], [cart?.items]);
 	const isExpired = timeRemaining !== null && timeRemaining <= 0;
 	const minutes = timeRemaining !== null ? Math.floor(timeRemaining / 60) : null;
 	const seconds = timeRemaining !== null ? timeRemaining % 60 : null;

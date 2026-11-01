@@ -5,10 +5,10 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import type { CheckoutQuestionResponse as CheckoutQuestion, CustomerProviderCatalogItem } from '@opencals/storefront-sdk';
-import { useCheckout } from '@/contexts/checkout-context';
+import { useCheckout, type ProviderName } from '@/contexts/checkout-context';
 import { useCart } from '@/contexts/cart-context';
 import { useSettings } from '@/contexts/settings-context';
-import { framesFor, shotCount, type CartItemLike } from '@/lib/shot-list';
+import { framesFor, shotCount } from '@/lib/shot-list';
 import { formatPrice } from '@/lib/format';
 import { siteConfig, toneHex } from '@/lib/site-config';
 import { dayLabel, timeLabel } from '@/lib/when';
@@ -114,8 +114,7 @@ function QuestionField({ q, value, onChange }: { q: CheckoutQuestion; value: str
 }
 
 function methodCopy(p: CustomerProviderCatalogItem): { title: string; body: string; action: string } {
-	const name: string = p.name; // widened: the store may return providers newer than this template
-	switch (name) {
+	switch (p.name) {
 		case 'stripe':
 			return { title: 'Card, Apple Pay or Google Pay', body: 'Pay now, securely through Stripe.', action: 'Continue to card' };
 		case 'cash':
@@ -144,8 +143,8 @@ export function ReleaseForm() {
 	const c = useCheckout();
 	const { cart, removeItem } = useCart();
 	const { currency } = useSettings();
-	const [method, setMethod] = useState<string | undefined>(undefined);
-	const frames = useMemo(() => framesFor(c.items as unknown as CartItemLike[]), [c.items]);
+	const [method, setMethod] = useState<ProviderName | undefined>(undefined);
+	const frames = useMemo(() => framesFor(c.items), [c.items]);
 	const shots = shotCount(frames);
 	const signed = c.step === 'payment-select' || c.step === 'payment';
 	const total = cart ? formatPrice(cart.total, currency) : '';

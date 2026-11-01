@@ -1,12 +1,8 @@
-import type { AddOnListItemResponse, ProductListItemResponse } from '@opencals/storefront-sdk';
+import type { AddOnListItemResponse, ProductListItemResponse, ProductListVariant } from '@opencals/storefront-sdk';
 import { siteConfig } from '@/lib/site-config';
 
 /** Minimal shape shared by the various product/variant responses that carry imagery. */
-interface WithImages {
-	imageId?: string | null;
-	image?: { url?: string | null } | null;
-	images?: Array<{ id?: string; url?: string | null }> | null;
-}
+type WithImages = Partial<Pick<ProductListVariant, 'imageId' | 'image' | 'images'>>;
 
 export function formatDuration(seconds: number): string {
 	const hours = Math.floor(seconds / 3600);

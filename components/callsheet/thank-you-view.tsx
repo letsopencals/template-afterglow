@@ -17,7 +17,7 @@ function viewsOf(order: OrderDetailResponse | undefined): BookingView[] {
 	return (order?.lineItems ?? [])
 		.map((li) => li.appointment)
 		.filter((a) => a != null)
-		.map((a) => toBookingView(a as Parameters<typeof toBookingView>[0]))
+		.map((a) => toBookingView(a))
 		.sort((a, b) => a.start - b.start);
 }
 

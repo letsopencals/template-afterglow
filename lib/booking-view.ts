@@ -1,13 +1,14 @@
 import { getBookingMeta, type AppointmentLike, type BookingMeta } from '@/lib/booking-meta';
 import { classMeta, serviceMeta, setMeta, shotMeta, siteConfig, siteMeta, type ShotMeta } from '@/lib/site-config';
 import { awaitingOf, type Awaiting } from '@/lib/booking-state';
+import type { AppointmentStatusType, StorefrontAppointmentPendingReason } from '@opencals/storefront-sdk';
 
 /** One booked session as the call sheet, the roll and the detail page show it. */
 export interface BookingView extends BookingMeta {
 	id: string;
 	start: number;
 	end: number;
-	status: string;
+	status: AppointmentStatusType;
 	/** Waiting for payment or for the studio's OK (a pending booking with a reason); null when confirmed. */
 	awaiting: Awaiting | null;
 	/** Placed through an order. A pending appointment without one is only a cart hold. */
@@ -29,8 +30,8 @@ export interface BookingView extends BookingMeta {
 
 type Appt = AppointmentLike & {
 	id: string;
-	status?: string | null;
-	pendingReason?: string | null;
+	status?: AppointmentStatusType | null;
+	pendingReason?: StorefrontAppointmentPendingReason | null;
 	orderLineItem?: unknown;
 	location?: (AppointmentLike['location'] & { slug?: string | null }) | null };
 

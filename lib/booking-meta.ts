@@ -1,5 +1,6 @@
 import { offeringKeyForSlug, classKeyForSlug } from '@/lib/catalog';
 import { classMeta, toneFor, serviceMeta, siteConfig, type Tone } from '@/lib/site-config';
+import type { AppointmentDetailLocation } from '@opencals/storefront-sdk';
 
 /**
  * Turns an appointment (list, detail or order-embedded) into the facts the
@@ -12,15 +13,9 @@ import { classMeta, toneFor, serviceMeta, siteConfig, type Tone } from '@/lib/si
  * that location's `link` (Afterglow has no online location at launch).
  */
 
-interface AddressFields {
-	addressLine1?: string | null;
-	addressLine2?: string | null;
-	city?: string | null;
-	state?: string | null;
-	postalCode?: string | null;
-	country?: string | null;
-	displayAddress?: string | null;
-}
+type AddressFields = Partial<
+	Pick<AppointmentDetailLocation, 'addressLine1' | 'addressLine2' | 'city' | 'state' | 'postalCode' | 'country' | 'displayAddress'>
+>;
 
 /** Structural subset shared by the SDK's appointment list, detail and order shapes. */
 export interface AppointmentLike {
@@ -45,7 +40,7 @@ export interface AppointmentLike {
 	} | null;
 	location?: (AddressFields & {
 		title?: string | null;
-		type?: string | null;
+		type?: AppointmentDetailLocation['type'] | null;
 		link?: string | null;
 		address?: string | null;
 	}) | null;

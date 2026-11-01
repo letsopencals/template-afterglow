@@ -4,20 +4,18 @@ import { useCallback, useState } from 'react';
 import { useCart } from '@/contexts/cart-context';
 import { useShotListUi } from '@/contexts/shot-list-ui-context';
 import { siteConfig } from '@/lib/site-config';
+import type { AppointmentDateRangeSlot, CreateAppointmentAddOn } from '@opencals/storefront-sdk';
 
-export interface BookSlot {
-	productId: string;
+export interface BookSlot extends Pick<AppointmentDateRangeSlot, 'productId' | 'staffMemberId' | 'locationId'> {
 	/** UTC instants. */
 	start: string | number;
 	end: string | number;
-	staffMemberId?: string | null;
-	locationId?: string | null;
 }
 
 export interface BookRequest {
 	slot: BookSlot;
 	numberOfAttendees?: number;
-	addOns?: Array<{ addOnId: string; quantity: number }>;
+	addOns?: Array<Required<CreateAppointmentAddOn>>;
 	/** Partner sessions: 2 people on one booking. */
 	people?: number;
 }

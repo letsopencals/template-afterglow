@@ -1,5 +1,13 @@
 import '@/lib/opencals';
-import { AppointmentService, CartService } from '@opencals/storefront-sdk';
+import {
+	AppointmentService,
+	CartService,
+	type AppointmentDateRangeSlot,
+	type CheckoutQuestionAnswer,
+	type CreateAppointmentAddOn,
+	type ExistingOrderCustomer,
+	type NewOrderCustomer,
+} from '@opencals/storefront-sdk';
 import { getAccessToken } from '@/lib/api-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
@@ -8,44 +16,17 @@ import { sanitizeAddOns, sanitizePeople } from '@/app/api/_lib/guards';
 import { siteConfig } from '@/lib/site-config';
 import { publicPayload } from '@/lib/public-payload';
 
-interface AddOnSelection {
-	addOnId: string;
-	quantity?: number;
-}
-
-interface QuestionAnswerInput {
-	questionId: string;
-	question: string;
-	answer: string;
-}
-
-interface CustomerInput {
-	kind: 'new' | 'existing';
-	customerId?: string;
-	email?: string;
-	firstName?: string;
-	lastName?: string;
-}
-
 export async function POST(request: NextRequest) {
 	const cartIdHeader = request.headers.get('X-Cart-Id') ?? '';
 
 	try {
 		const body = await request.json();
 		const { slot, numberOfAttendees, addOns, customer, checkoutQuestionAnswers, people } = body as {
-			slot: {
-				productId: string;
-				fromDate: string;
-				fromTime: string;
-				toDate: string;
-				toTime: string;
-				staffMemberId?: string | null;
-				locationId?: string | null;
-			};
+			slot: AppointmentDateRangeSlot;
 			numberOfAttendees?: number;
-			addOns?: AddOnSelection[];
-			customer?: CustomerInput;
-			checkoutQuestionAnswers?: QuestionAnswerInput[];
+			addOns?: CreateAppointmentAddOn[];
+			customer?: ExistingOrderCustomer | NewOrderCustomer;
+			checkoutQuestionAnswers?: CheckoutQuestionAnswer[];
 			/** Privates: "2" for a duet. Sent as appointment customAttributes.people. */
 			people?: unknown;
 		};
@@ -83,7 +64,12 @@ export async function POST(request: NextRequest) {
 						customer:
 							customer.kind === 'existing' && customer.customerId
 								? { customerId: customer.customerId }
-								: { externalId: customer.email ?? '', email: customer.email ?? '', firstName: customer.firstName, lastName: customer.lastName },
+								: {
+										externalId: ('email' in customer ? customer.email : undefined) ?? '',
+										email: ('email' in customer ? customer.email : undefined) ?? '',
+										firstName: customer.firstName,
+										lastName: customer.lastName,
+									},
 					}
 				: {}),
 				...(checkoutQuestionAnswers && checkoutQuestionAnswers.length > 0

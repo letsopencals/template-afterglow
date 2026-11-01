@@ -1,3 +1,4 @@
+import type { AppointmentDetailProduct, AppointmentStatusType } from '@opencals/storefront-sdk';
 import { formatGap } from '@/lib/policy';
 import { siteConfig } from '@/lib/site-config';
 import { dayLabel, timeLabel } from '@/lib/when';
@@ -16,8 +17,8 @@ export interface ChangeAction {
 
 export interface ChangeAppt {
 	from: string;
-	status?: string | null;
-	product?: { cancelGap?: number | null; rescheduleGap?: number | null; allowCustomerCancel?: boolean | null; allowCustomerReschedule?: boolean | null } | null;
+	status?: AppointmentStatusType | null;
+	product?: Partial<Pick<AppointmentDetailProduct, 'cancelGap' | 'rescheduleGap' | 'allowCustomerCancel' | 'allowCustomerReschedule'>> | null;
 }
 
 function action(a: ChangeAppt, now: number, gapSeconds: number, allowed: boolean, verb: 'cancel' | 'move'): ChangeAction {

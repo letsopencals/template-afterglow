@@ -11,17 +11,9 @@ import { useNow } from '@/hooks/use-now';
 import { BookerDays, SlotButtons } from '@/components/booker/slot-buttons';
 import { Button } from '@/components/ui/button';
 import { localTimeLabel } from '@/lib/when';
+import type { AppointmentDateRangeSlot, AppointmentDetailResponse } from '@opencals/storefront-sdk';
 
-interface Appt {
-	id: string;
-	productId: string;
-	staffMemberId: string | null;
-	locationId: string | null;
-	from: string;
-	to: string;
-	numberOfAttendees?: number | null;
-	product?: { slug?: string | null; duration?: number | null } | null;
-}
+type Appt = Pick<AppointmentDetailResponse, 'id' | 'productId' | 'staffMemberId' | 'locationId' | 'from' | 'to' | 'numberOfAttendees' | 'product'>;
 
 const utc = (ms: number) => {
 	const iso = new Date(ms).toISOString();
@@ -34,7 +26,7 @@ const utc = (ms: number) => {
  * the booker grid. The booking's own time is added back (merged availability
  * counts it as taken).
  */
-export function ReschedulePicker({ appt, onMove, pending }: { appt: Appt; onMove: (slot: Record<string, string | null>) => void; pending: boolean }) {
+export function ReschedulePicker({ appt, onMove, pending }: { appt: Appt; onMove: (slot: AppointmentDateRangeSlot) => void; pending: boolean }) {
 	const now = useNow(60_000);
 	const q = new URLSearchParams({ productId: appt.productId });
 	if (appt.staffMemberId) q.set('staffMemberId', appt.staffMemberId);

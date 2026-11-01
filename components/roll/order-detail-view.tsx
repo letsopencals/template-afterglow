@@ -28,7 +28,7 @@ export function OrderDetailView({ id }: { id: string }) {
 			</p>
 			<ul className="mt-6 border-t border-line">
 				{o.lineItems.map((li) => {
-					const v = li.appointment ? toBookingView(li.appointment as Parameters<typeof toBookingView>[0]) : null;
+					const v = li.appointment ? toBookingView(li.appointment) : null;
 					return (
 						<li key={li.appointmentId ?? li.createdAt} className="flex items-center gap-3 border-b border-line py-3">
 							{v ? <span aria-hidden className="mt-1 h-8 w-[3px] shrink-0 rounded-full" style={{ background: toneHex(v.tone) }} /> : null}

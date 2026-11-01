@@ -1,4 +1,9 @@
-import type { PaymentInstructions, StorefrontAppointmentPendingReason } from '@opencals/storefront-sdk';
+import type {
+	AppointmentStatusType,
+	OrderListItemResponse,
+	PaymentInstructions,
+	StorefrontAppointmentPendingReason,
+} from '@opencals/storefront-sdk';
 
 /**
  * Whether a booking still waits for something, and how to pay for it. Pure.
@@ -8,7 +13,7 @@ import type { PaymentInstructions, StorefrontAppointmentPendingReason } from '@o
  * `pending` with no reason while a background job confirms them: those are
  * confirmed, never "waiting".
  */
-type Appt = { status?: string | null; pendingReason?: StorefrontAppointmentPendingReason | string | null } | null | undefined;
+type Appt = { status?: AppointmentStatusType | null; pendingReason?: StorefrontAppointmentPendingReason | null } | null | undefined;
 
 export type Awaiting = StorefrontAppointmentPendingReason;
 
@@ -30,7 +35,7 @@ export function awaitingLabel(r: Awaiting): string {
 }
 
 /** Order payment state in the roll's words. Never blank, never a raw value. */
-export function paymentLabel(o: { isFullyPaid?: boolean | null; paymentStatus?: string | null; refundStatus?: string | null }): string {
+export function paymentLabel(o: Partial<Pick<OrderListItemResponse, 'isFullyPaid' | 'paymentStatus' | 'refundStatus'>>): string {
 	if (o.paymentStatus === 'voided') return 'Cancelled — not charged';
 	if (o.refundStatus === 'fully-refunded') return 'Refunded';
 	if (o.isFullyPaid || o.paymentStatus === 'paid') return 'Paid';
