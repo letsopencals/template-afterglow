@@ -8,16 +8,11 @@ import { fetcher } from '@/lib/fetcher';
 import { formatPrice } from '@/lib/format';
 import { dayLabel } from '@/lib/when';
 import { AccountError, AccountLoading } from '@/components/roll/states';
+import { paymentLabel } from '@/lib/booking-state';
 
 interface OrderPage {
 	data: OrderListItemResponse[];
 	meta: { page: number; hasNextPage: boolean; hasPreviousPage: boolean };
-}
-
-export function paymentLabel(o: { isFullyPaid?: boolean | null; paymentStatus?: string | null }): string {
-	if (o.isFullyPaid) return 'Paid';
-	if (o.paymentStatus === 'refunded') return 'Refunded';
-	return 'Pay at the desk';
 }
 
 /** Every order, newest first, as ruled log lines. */

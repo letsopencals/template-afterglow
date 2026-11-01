@@ -8,6 +8,7 @@ import { FilmEdge } from '@/components/frame/film-edge';
 import { CircledShot } from '@/components/shotlist/frame';
 import { StoryCard } from '@/components/callsheet/story-card';
 import { buttonClasses } from '@/components/ui/button';
+import type { Awaiting } from '@/lib/booking-state';
 
 /**
  * The confirmation artifact: a production call sheet. Call time (arrive early),
@@ -15,7 +16,25 @@ import { buttonClasses } from '@/components/ui/button';
  * then notes (what to bring, getting there, when the edits land), calendar
  * links, a story card and "same time next week".
  */
-export function CallSheet({ orderName, name, email, views, total }: { orderName: string | null; name: string | null; email: string | null; views: BookingView[]; total: string | null }) {
+export function CallSheet({
+	orderName,
+	name,
+	email,
+	views,
+	total,
+	awaiting = null,
+	payment = null,
+}: {
+	orderName: string | null;
+	name: string | null;
+	email: string | null;
+	views: BookingView[];
+	total: string | null;
+	/** Set while the booking waits for payment or for the studio; otherwise it's confirmed. */
+	awaiting?: Awaiting | null;
+	/** How to pay, for manual payment methods. */
+	payment?: React.ReactNode;
+}) {
 	const first = views[0]!;
 	const events = views.map(toCalendarEvent);
 	const delivery = deliveryLine(views);
@@ -25,13 +44,24 @@ export function CallSheet({ orderName, name, email, views, total }: { orderName:
 	return (
 		<div className="pb-24">
 			<section className="container-x pb-8 pt-12">
-				<p className="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-muted">Booked · {orderName ?? 'confirmed'}</p>
+				<p className="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-muted">
+					{awaiting === 'awaiting_payment' ? 'Received · awaiting payment' : awaiting ? 'Received · awaiting the studio’s OK' : 'Booked · confirmed'}
+					{orderName ? ` · ${orderName}` : ''}
+				</p>
 				<h1 className="mt-2 max-w-4xl font-display text-[2.6rem] font-extrabold leading-[0.98] tracking-[-0.03em] sm:text-6xl">
-					You&rsquo;re on the call sheet{firstName ? `, ${firstName}` : ''}.
+					{awaiting ? `You’re pencilled in${firstName ? `, ${firstName}` : ''}.` : `You’re on the call sheet${firstName ? `, ${firstName}` : ''}.`}
 				</h1>
 				<p className="mt-4 max-w-2xl text-lg text-ink-2">
-					{email ? `The confirmation is on its way to ${email}. ` : ''}Bring this, or just your name: the desk has the same sheet.
+					{awaiting === 'awaiting_payment'
+						? 'Your spots are held until the payment lands; then the sheet is final. '
+						: awaiting
+							? 'The studio confirms this booking by hand and emails you once it’s a go. '
+							: email
+								? `The confirmation is on its way to ${email}. `
+								: ''}
+					{awaiting ? '' : 'Bring this, or just your name: the desk has the same sheet.'}
 				</p>
+				{payment ? <div className="mt-6 max-w-2xl">{payment}</div> : null}
 			</section>
 
 			<div className="container-x">

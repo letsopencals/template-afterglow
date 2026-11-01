@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/format';
 import { toBookingView } from '@/lib/booking-view';
 import { dayLabel, timeLabel } from '@/lib/when';
 import { toneHex } from '@/lib/site-config';
-import { paymentLabel } from '@/components/roll/orders-view';
+import { paymentLabel } from '@/lib/booking-state';
 import { AccountError, AccountLoading } from '@/components/roll/states';
 
 /** One order: its sessions and the totals. */

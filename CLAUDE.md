@@ -160,6 +160,15 @@ rings, grease pencil, contact sheet, call sheet, golden hour).
   save-answers); then payment (Stripe, pay at the desk, or the no-payment path for
   the free First Glow Tour). Stripe's publishable key comes only from checkout
   start (`paymentData.publishableKey`).
+  After start the context routes on the provider's `checkoutMode`: `internal`
+  shows the card form, `redirect` follows `redirectUrl`, `manual` (desk, bank
+  transfer, invoice) and `none` submit straight away. Checkout 409/402 codes
+  (`CART_ALREADY_CHECKED_OUT`, `CART_EXPIRED`, `CHECKOUT_IN_PROGRESS`,
+  `PAYMENT_NOT_AUTHORIZED`) are handled in `contexts/checkout-context.tsx`.
+- **Waiting bookings** (`lib/booking-state.ts`): a booking waits only when it is
+  `pending` with a `pendingReason`; pending without one (auto-confirm still
+  running) is confirmed. Submit's `paymentInstructions` reach the call sheet via
+  sessionStorage (`components/callsheet/payment-note.tsx`).
 - **Thank-you** (`/thank-you`): the call sheet (`components/callsheet/*`) and a
   9:16 story card drawn on a canvas. Without a session it asks for a sign-in code.
 - **Account** (`/account`): **Your roll** (`lib/roll.ts`): up next as call sheets,

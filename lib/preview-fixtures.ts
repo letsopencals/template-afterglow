@@ -22,6 +22,8 @@ function view(id: string, dayOffset: number, time: string, minutes: number, o: F
 		start,
 		end: start + minutes * 60_000,
 		status: dayOffset < 0 ? 'completed' : 'scheduled',
+		awaiting: null,
+		booked: true,
 		siteSlug,
 		siteName: site.nickname,
 		setName: set?.name ?? null,

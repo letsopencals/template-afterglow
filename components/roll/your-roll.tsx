@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { awaitingLabel } from '@/lib/booking-state';
 import useSWR from 'swr';
 import { clsx } from 'clsx';
 import { useSession } from 'next-auth/react';
@@ -49,6 +50,7 @@ function UpNextRow({ v }: { v: BookingView }) {
 				<p className="flex items-center gap-2 text-[1.1rem] font-medium">
 					<span aria-hidden className="h-4 w-[3px] rounded-full" style={{ background: toneHex(v.tone) }} />
 					{v.title}
+					{v.awaiting ? <span className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-pink">{awaitingLabel(v.awaiting)}</span> : null}
 				</p>
 				<p className="text-sm text-muted">
 					{[`${timeLabel(v.start)} · ${minutesLabel(v.minutes)}`, v.setName, v.siteName, v.coachFirstName ? `with ${v.coachFirstName}` : null].filter(Boolean).join(' · ')}

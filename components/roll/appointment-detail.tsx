@@ -10,6 +10,7 @@ import { toBookingView } from '@/lib/booking-view';
 import { changeWindow, policyLine } from '@/lib/change-window';
 import { callTime, toCalendarEvent } from '@/lib/call-sheet';
 import { editsState } from '@/lib/roll';
+import { awaitingLabel } from '@/lib/booking-state';
 import { icsHref, ICS_FILENAME } from '@/lib/calendar';
 import { toneHex } from '@/lib/site-config';
 import { dayLabel, longDayLabel, minutesLabel, timeLabel } from '@/lib/when';
@@ -79,6 +80,7 @@ export function AppointmentDetail({ id, initialAction }: { id: string; initialAc
 							<span aria-hidden className="h-3 w-[3px] rounded-full" style={{ background: toneHex(v.tone) }} />
 							{v.kindLabel}
 							{v.status === 'canceled' ? <span className="text-danger">· cut</span> : null}
+							{v.awaiting ? <span className="text-pink">· {awaitingLabel(v.awaiting)}</span> : null}
 						</p>
 						<h1 className="mt-1 font-display text-4xl font-bold leading-tight">{v.title}</h1>
 						<p className="mt-1 text-ink-2">

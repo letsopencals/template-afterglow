@@ -17,7 +17,10 @@ export function splitRoll(views: readonly BookingView[], now: number): RollSplit
 	const cancelled: BookingView[] = [];
 	for (const v of views) {
 		if (v.status === 'canceled') cancelled.push(v);
-		else if (v.end > now && v.status === 'scheduled') upcoming.push(v);
+		// Pending bookings (awaiting payment or the studio's OK) stay up next; a pending row without an
+		// order is only a cart hold and shows nowhere.
+		else if (v.status === 'pending' && !v.booked) continue;
+		else if (v.end > now && (v.status === 'scheduled' || v.status === 'pending')) upcoming.push(v);
 		else if (v.start <= now && v.status !== 'pending') shot.push(v);
 	}
 	upcoming.sort((a, b) => a.start - b.start);

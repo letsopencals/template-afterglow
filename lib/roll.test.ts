@@ -8,12 +8,15 @@ const shot = { kind: 'photos' as const, label: 'Photo Set', deliverable: '', spe
 const roll = { kind: 'roll' as const, label: 'Raw Camera Roll', deliverable: '', spec: 'All frames', eta: '24 h' };
 
 const v = (id: string, startOffsetH: number, o: Partial<BookingView> = {}): BookingView =>
-	({ id, start: now + startOffsetH * H, end: now + (startOffsetH + 1) * H, status: 'scheduled', shots: [], setName: 'Mirror Hall', ...o }) as BookingView;
+	({ id, start: now + startOffsetH * H, end: now + (startOffsetH + 1) * H, status: 'scheduled', awaiting: null, booked: true, shots: [], setName: 'Mirror Hall', ...o }) as BookingView;
 
 describe('splitRoll', () => {
 	it('splits upcoming, shot and cancelled, newest shot first', () => {
-		const s = splitRoll([v('a', 5), v('b', -30), v('c', -2), v('d', 10, { status: 'canceled' }), v('e', 2, { status: 'pending' })], now);
-		expect(s.upcoming.map((x) => x.id)).toEqual(['a']);
+		const s = splitRoll(
+			[v('a', 5), v('b', -30), v('c', -2), v('d', 10, { status: 'canceled' }), v('e', 2, { status: 'pending', booked: false }), v('f', 3, { status: 'pending', awaiting: 'awaiting_payment' })],
+			now,
+		);
+		expect(s.upcoming.map((x) => x.id)).toEqual(['f', 'a']);
 		expect(s.shot.map((x) => x.id)).toEqual(['c', 'b']);
 		expect(s.cancelled.map((x) => x.id)).toEqual(['d']);
 	});

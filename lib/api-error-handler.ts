@@ -1,12 +1,20 @@
 import { OpencalsApiError } from '@opencals/storefront-sdk';
 import { NextResponse } from 'next/server';
 
+
 export function handleApiError(err: unknown, fallbackMessage = 'Internal server error') {
 	if (err instanceof OpencalsApiError) {
+		// Checkout conflicts carry more than a message: the 409 CART_ALREADY_CHECKED_OUT body has the `orderId`,
+		// the 402 PAYMENT_NOT_AUTHORIZED body the provider's `paymentStatus`.
+		const extra = err.body ?? {};
+		const fieldErrors = err.toFieldErrors();
 		return NextResponse.json(
 			{
 				error: err.message,
-				...(Object.keys(err.toFieldErrors()).length > 0 && { errors: err.toFieldErrors() }),
+				...(err.code ? { code: err.code } : {}),
+				...(typeof extra.orderId === 'string' ? { orderId: extra.orderId } : {}),
+				...(typeof extra.paymentStatus === 'string' ? { paymentStatus: extra.paymentStatus } : {}),
+				...(Object.keys(fieldErrors).length > 0 && { errors: fieldErrors }),
 			},
 			{ status: err.status },
 		);

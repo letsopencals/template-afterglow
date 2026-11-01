@@ -114,17 +114,25 @@ function QuestionField({ q, value, onChange }: { q: CheckoutQuestion; value: str
 }
 
 function methodCopy(p: CustomerProviderCatalogItem): { title: string; body: string; action: string } {
-	switch (p.name) {
+	const name: string = p.name; // widened: the store may return providers newer than this template
+	switch (name) {
 		case 'stripe':
 			return { title: 'Card, Apple Pay or Google Pay', body: 'Pay now, securely through Stripe.', action: 'Continue to card' };
 		case 'cash':
 			return { title: 'Pay at the desk', body: 'Your spots are held. Pay by card or phone when you arrive.', action: 'Confirm, pay at the desk' };
 		case 'bank_transfer':
-			return { title: 'Bank transfer', body: 'We email the details. Spots are held until it lands.', action: 'Confirm, pay by transfer' };
+			return { title: 'Bank transfer', body: 'The account details show on your call sheet and in the email.', action: 'Book, pay by transfer' };
+		case 'stripe_invoice':
+			return { title: 'Pay by invoice', body: 'We email an invoice you pay online, by card or bank.', action: 'Book, send the invoice' };
 		case 'no_payment_required':
 			return { title: 'Nothing to pay', body: 'This one is on us.', action: 'Confirm booking' };
 		default:
-			return { title: p.displayName ?? p.name, body: p.description ?? '', action: 'Continue' };
+			// A provider this template doesn't know yet: the store's own name and description for it.
+			return {
+				title: p.displayName || 'Another way to pay',
+				body: p.description ?? '',
+				action: p.checkoutMode === 'internal' || p.checkoutMode === 'redirect' ? 'Continue to payment' : 'Book',
+			};
 	}
 }
 
@@ -280,12 +288,12 @@ export function ReleaseForm() {
 								<h2 className="font-display text-2xl font-bold">Payment</h2>
 								<div className="mt-5">
 									{c.step === 'payment' && c.paymentData ? (
-										c.selectedProvider === 'stripe' && c.paymentData.clientSecret ? (
+										c.paymentData.clientSecret && c.providers.find((p) => p.name === c.paymentData?.provider)?.checkoutMode !== 'manual' ? (
 											<StripePayment
 												clientSecret={c.paymentData.clientSecret}
 												stripeAccountId={c.paymentData.stripeAccountId}
 												publishableKey={c.paymentData.publishableKey}
-												onSuccess={(id) => c.handleSubmitCheckout(id)}
+												onSuccess={(id) => void c.handleSubmitCheckout(id)}
 												onError={(m) => c.setError(m)}
 												disabled={c.isExpired || c.submitting}
 												payLabel={total}
@@ -298,7 +306,7 @@ export function ReleaseForm() {
 												}
 											/>
 										) : (
-											<Button variant="glow" size="lg" loading={c.submitting} onClick={() => c.handleSubmitCheckout()}>
+											<Button variant="glow" size="lg" loading={c.submitting} disabled={c.isExpired} onClick={() => void c.handleSubmitCheckout()}>
 												Confirm booking
 											</Button>
 										)
@@ -337,9 +345,14 @@ export function ReleaseForm() {
 							</section>
 						) : null}
 						{c.error ? (
-							<p role="alert" className="mt-6 rounded-[10px] border-l-4 border-danger bg-white px-4 py-3 text-sm text-danger">
-								{c.error}
-							</p>
+							<div role="alert" className="mt-6 rounded-[10px] border-l-4 border-danger bg-white px-4 py-3 text-sm text-danger">
+								<p>{c.error}</p>
+								{c.errorCode === 'CART_EXPIRED' ? (
+									<Button variant="shutter" size="sm" className="mt-3" onClick={c.restartFromSchedule}>
+										Pick a new time
+									</Button>
+								) : null}
+							</div>
 						) : null}
 					</div>
 				</div>

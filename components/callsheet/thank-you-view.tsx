@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
@@ -8,6 +8,8 @@ import type { OrderDetailResponse } from '@opencals/storefront-sdk';
 import { fetcher } from '@/lib/fetcher';
 import { formatPrice } from '@/lib/format';
 import { toBookingView, type BookingView } from '@/lib/booking-view';
+import { awaitingOfAll, readHandoff, type CheckoutHandoff } from '@/lib/booking-state';
+import { PaymentNote } from '@/components/callsheet/payment-note';
 import { buttonClasses } from '@/components/ui/button';
 import { CallSheet } from '@/components/callsheet/call-sheet';
 
@@ -29,15 +31,33 @@ export function ThankYouView({ orderId }: { orderId: string | null }) {
 	const key = orderId && status === 'authenticated' ? `/api/account/orders/${encodeURIComponent(orderId)}` : null;
 	const { data: order, error, isLoading, mutate } = useSWR<OrderDetailResponse>(key, fetcher, { revalidateOnFocus: false, errorRetryCount: 2 });
 	const views = useMemo(() => viewsOf(order), [order]);
+	// What checkout submit returned (payment instructions, waiting state), from this tab's storage.
+	const [handoff, setHandoff] = useState<CheckoutHandoff | null>(null);
+	useEffect(() => {
+		setHandoff(orderId ? readHandoff(orderId) : null);
+	}, [orderId]);
 
 	if (status === 'loading' || isLoading) return <div className="min-h-[70vh]" aria-busy="true" />;
 	if (status !== 'authenticated') {
 		const back = orderId ? `/thank-you?orderId=${encodeURIComponent(orderId)}` : '/account';
+		const awaiting = handoff?.awaiting ?? null;
 		return (
 			<section className="container-x py-20">
-				<p className="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-muted">Booked</p>
-				<h1 className="mt-2 font-display text-5xl font-extrabold">You&rsquo;re booked.</h1>
-				<p className="mt-4 max-w-xl text-lg text-ink-2">Your spots are held and the confirmation email is on its way. To see your call sheet here and move or cancel a session, sign in with the email you booked with. We send a 6-digit code, no password.</p>
+				<p className="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-muted">{awaiting === 'awaiting_payment' ? 'Received · awaiting payment' : awaiting ? 'Received · awaiting the studio’s OK' : 'Booked · confirmed'}</p>
+				<h1 className="mt-2 font-display text-5xl font-extrabold">{awaiting ? 'Booking received.' : 'You’re booked.'}</h1>
+				<p className="mt-4 max-w-xl text-lg text-ink-2">
+					{awaiting === 'awaiting_payment'
+						? 'Your spots are held until the payment lands; then the sheet is final. '
+						: awaiting
+							? 'The studio confirms this one by hand and emails you once it’s a go. '
+							: 'The confirmation email is on its way. '}
+					To see your call sheet here and move or cancel a session, sign in with the email you booked with. We send a 6-digit code, no password.
+				</p>
+				{handoff?.instructions ? (
+					<div className="mt-8 max-w-xl">
+						<PaymentNote instructions={handoff.instructions} orderName={null} />
+					</div>
+				) : null}
 				<Link href={`/login?callbackUrl=${encodeURIComponent(back)}`} className={buttonClasses({ variant: 'glow', size: 'lg', className: 'mt-8' })}>
 					Email me a code
 				</Link>
@@ -56,5 +76,21 @@ export function ThankYouView({ orderId }: { orderId: string | null }) {
 		);
 	}
 	const name = [order?.customer?.firstName, order?.customer?.lastName].filter(Boolean).join(' ') || null;
-	return <CallSheet orderName={order?.name ?? null} name={name} email={order?.customerEmail ?? order?.customer?.email ?? null} views={views} total={order ? formatPrice(order.total, order.paymentCurrencyCode) : null} />;
+	const appts = (order?.lineItems ?? []).map((li) => li.appointment);
+	const awaiting = awaitingOfAll(appts);
+	// Payment is owed on a manual method: show how (or point to the email when this tab has no instructions).
+	const owes = order ? !order.isFullyPaid && order.paymentStatus !== 'voided' && order.dueToPay > 0 : false;
+	const instructions = handoff?.instructions ?? null;
+	const payment = instructions || (owes && awaiting === 'awaiting_payment') ? <PaymentNote instructions={instructions} orderName={order?.name ?? null} /> : null;
+	return (
+		<CallSheet
+			orderName={order?.name ?? null}
+			name={name}
+			email={order?.customerEmail ?? order?.customer?.email ?? null}
+			views={views}
+			total={order ? formatPrice(order.total, order.paymentCurrencyCode) : null}
+			awaiting={awaiting}
+			payment={payment}
+		/>
+	);
 }

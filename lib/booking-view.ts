@@ -1,5 +1,6 @@
 import { getBookingMeta, type AppointmentLike, type BookingMeta } from '@/lib/booking-meta';
 import { classMeta, serviceMeta, setMeta, shotMeta, siteConfig, siteMeta, type ShotMeta } from '@/lib/site-config';
+import { awaitingOf, type Awaiting } from '@/lib/booking-state';
 
 /** One booked session as the call sheet, the roll and the detail page show it. */
 export interface BookingView extends BookingMeta {
@@ -7,6 +8,10 @@ export interface BookingView extends BookingMeta {
 	start: number;
 	end: number;
 	status: string;
+	/** Waiting for payment or for the studio's OK (a pending booking with a reason); null when confirmed. */
+	awaiting: Awaiting | null;
+	/** Placed through an order. A pending appointment without one is only a cart hold. */
+	booked: boolean;
 	siteSlug: string | null;
 	siteName: string | null;
 	setName: string | null;
@@ -22,7 +27,12 @@ export interface BookingView extends BookingMeta {
 	extras: string[];
 }
 
-type Appt = AppointmentLike & { id: string; status?: string | null; location?: (AppointmentLike['location'] & { slug?: string | null }) | null };
+type Appt = AppointmentLike & {
+	id: string;
+	status?: string | null;
+	pendingReason?: string | null;
+	orderLineItem?: unknown;
+	location?: (AppointmentLike['location'] & { slug?: string | null }) | null };
 
 export function toBookingView(a: Appt): BookingView {
 	const meta = getBookingMeta(a);
@@ -37,6 +47,9 @@ export function toBookingView(a: Appt): BookingView {
 		start: Date.parse(a.from),
 		end: Date.parse(a.to),
 		status: a.status ?? 'scheduled',
+		awaiting: awaitingOf(a),
+		// List/detail rows carry `orderLineItem`; order-embedded ones are booked by definition.
+		booked: a.orderLineItem === undefined ? true : a.orderLineItem !== null,
 		siteSlug: a.location?.slug ?? null,
 		siteName: site?.nickname ?? a.location?.title ?? null,
 		setName: setMeta(setKey)?.name ?? null,
