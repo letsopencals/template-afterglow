@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -20,12 +20,16 @@ import { PromoCode } from '@/components/shotlist/promo-code';
 import { HoldTimer } from '@/components/shotlist/hold-timer';
 import { SafeImage } from '@/components/ui/safe-image';
 import { Button, buttonClasses } from '@/components/ui/button';
-import { FieldLabel, Input, Select, Textarea } from '@/components/ui/input';
+import { FieldError, FieldLabel, Input, Select, Textarea } from '@/components/ui/input';
+import { errorId, fieldAria } from '@/lib/field-errors';
 
 const StripePayment = dynamic(() => import('@/components/checkout/stripe-payment').then((m) => m.StripePayment), {
 	ssr: false,
 	loading: () => <div className="h-56 animate-pulse rounded-[12px] bg-cream-2" aria-busy="true" aria-label="Loading secure payment form" />,
 });
+
+/** Input ids of the talent's fields. */
+const TALENT_INPUT_IDS = { firstName: 'first', lastName: 'last', email: 'email' } as const;
 
 function Clause({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
 	return (
@@ -153,6 +157,17 @@ export function ReleaseForm() {
 	const name = [c.firstName, c.lastName].filter(Boolean).join(' ');
 	const consentQ = questions.find((q) => /post|consent|tag/i.test(q.translations?.[0]?.title ?? q.internalName));
 	const consent = consentQ ? c.answers[consentQ.id] : undefined;
+	const fe = c.fieldErrors;
+
+	// A submit came back with the talent's fields rejected: put the cursor in the first one (not while typing).
+	const wasSubmitting = useRef(false);
+	useEffect(() => {
+		if (wasSubmitting.current && !c.submitting) {
+			const first = (['firstName', 'lastName', 'email'] as const).find((f) => fe[f]?.length);
+			if (first) document.getElementById(TALENT_INPUT_IDS[first])?.focus();
+		}
+		wasSubmitting.current = c.submitting;
+	}, [c.submitting, fe]);
 
 	if (!cart || frames.length === 0) {
 		return (
@@ -240,17 +255,20 @@ export function ReleaseForm() {
 											<FieldLabel htmlFor="first" required>
 												First name
 											</FieldLabel>
-											<Input id="first" autoComplete="given-name" required value={c.firstName} onChange={(e) => c.setFirstName(e.target.value)} />
+											<Input id="first" autoComplete="given-name" required value={c.firstName} onChange={(e) => c.setFirstName(e.target.value)} {...fieldAria('first', fe.firstName)} />
+											<FieldError id={errorId('first')} messages={fe.firstName} />
 										</div>
 										<div>
 											<FieldLabel htmlFor="last">Last name</FieldLabel>
-											<Input id="last" autoComplete="family-name" value={c.lastName} onChange={(e) => c.setLastName(e.target.value)} />
+											<Input id="last" autoComplete="family-name" value={c.lastName} onChange={(e) => c.setLastName(e.target.value)} {...fieldAria('last', fe.lastName)} />
+											<FieldError id={errorId('last')} messages={fe.lastName} />
 										</div>
 										<div className="sm:col-span-2">
 											<FieldLabel htmlFor="email" required hint="Your booking, sign-in code and edits go here">
 												Email
 											</FieldLabel>
-											<Input id="email" type="email" autoComplete="email" required value={c.email} onChange={(e) => c.setEmail(e.target.value)} disabled={Boolean(c.customerId)} />
+											<Input id="email" type="email" autoComplete="email" required value={c.email} onChange={(e) => c.setEmail(e.target.value)} disabled={Boolean(c.customerId)} {...fieldAria('email', fe.email)} />
+											<FieldError id={errorId('email')} messages={fe.email} />
 										</div>
 									</div>
 								</Clause>
