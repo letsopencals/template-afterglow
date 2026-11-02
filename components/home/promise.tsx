@@ -3,7 +3,7 @@ import { Viewfinder } from '@/components/frame/viewfinder';
 import { SafeImage } from '@/components/ui/safe-image';
 import { siteConfig } from '@/lib/site-config';
 
-const SHOTS = ['/images/gallery/promise-book.jpg', '/images/gallery/crew-at-work.jpg', '/images/gallery/promise-edits.jpg'];
+const SHOTS = ['/images/gallery/mirror-selfie-free.jpg', '/images/gallery/shoot-bts.jpg', '/images/gallery/edit-suite.jpg'];
 
 /** "You train. We shoot." in three frames. */
 export function Promise() {
