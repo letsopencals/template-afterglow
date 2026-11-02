@@ -4,7 +4,7 @@ A production-ready booking website for a boutique gym where the crew shoots you 
 
 **[View Live Demo →](https://template-afterglow.vercel.app)**
 
-![Afterglow on a laptop and a phone on the pink terrazzo bar in South Beach: the "You train. We shoot." homepage, and the Sunset Rooftop Yoga story on the phone](docs/cover.png)
+![Afterglow on a tablet and a phone lying on a rooftop daybed at golden hour, next to an iced matcha, a camera and a pink yoga mat: the "You train. We shoot." homepage on the tablet and the call sheet on the phone](docs/cover.png)
 
 Deco cream, golden-hour gradients, camera viewfinders and grease pencil. Afterglow is a content gym in **Miami** (USD, `America/New_York`): South Beach on Collins Ave with a rooftop and Mirror Hall, and Wynwood with the Neon Room, the Ring and the Studio Wall. The promise is **"You train. We shoot."**: every class can come with the in-house crew, and the edits land in your inbox. It has a full storefront:
 
