@@ -4,7 +4,7 @@ A production-ready booking website for a boutique gym where the crew shoots you 
 
 **[View Live Demo →](https://template-afterglow.vercel.app)**
 
-<!-- TODO(media): add docs/cover.png (device photo at the gym) and the screenshots (home with stories, schedule, the take, shoots, the shot list, release form, call sheet, your roll, mobile) once the store is seeded. -->
+![Afterglow on a laptop and a phone on the pink terrazzo bar in South Beach: the "You train. We shoot." homepage, and the Sunset Rooftop Yoga story on the phone](docs/cover.png)
 
 Deco cream, golden-hour gradients, camera viewfinders and grease pencil. Afterglow is a content gym in **Miami** (USD, `America/New_York`): South Beach on Collins Ave with a rooftop and Mirror Hall, and Wynwood with the Neon Room, the Ring and the Studio Wall. The promise is **"You train. We shoot."**: every class can come with the in-house crew, and the edits land in your inbox. It has a full storefront:
 
@@ -57,11 +57,19 @@ That's it. Card payments use the Stripe account connected to your store; the key
 
 A full-bleed hero video inside a camera viewfinder ("You train. We shoot."), with the next call time burned into the frame. Under it, a row of **story rings** (Neon Room, Rooftop, the Ring, Mirror Hall, the Bar, the sunrise run) opens a **full-screen story viewer**: vertical clips, segmented progress bars, tap left or right, hold to pause, and a "Book" sticker that links into booking. Then: how the crew works, the next call times, the sets as a contact sheet, shoots, the cast and crew, the bar and café, the Glow Pass preview and both sites.
 
+![Homepage — "You train. We shoot." over the hero video, with the next call time in the viewfinder](docs/homepage-hero.png)
+
+![Story rings — Today at Afterglow: Neon Room, Rooftop, the Ring, Mirror Hall, the Bar, the sunrise run and the crew](docs/home-stories.png)
+
+![Story viewer — the Neon Room ride, with progress bars and a "Book a ride" sticker](docs/story-viewer.png)
+
 ### The schedule (`/schedule`)
 
 One day at a time. The day strip shows each date's session count and **that day's sunset**. Sessions are grouped by **set** (Neon Room, Mirror Hall, the Rooftop, the Ring, the Mural Floor, the beach), each under its photo. A row shows the time, the class, the coach, spots left and a **golden-hour badge** when an outdoor class overlaps the real Miami sunrise or sunset hour (`lib/sun.ts`, the NOAA solar calculation, with tests). Full classes are struck through and point to the next one with space.
 
 Tapping a row **expands it in place**: what the class is, what the crew shoots, the four **shot add-ons as viewfinder frames** you circle (Class Clips, Photo Set, Slow-mo Reel, Raw Camera Roll), bar extras, the price and **Book**. On phones the Book bar sticks to the bottom of the screen while the row is open. Filters cover the site, the class type, the coach and "golden hour only", and everything lives in the URL: `/schedule?s=<series>@<start>` opens a row directly.
+
+![Schedule — a Rhythm Ride row open in the Neon Room, with Raw Camera Roll and Class Clips circled and Book + 2 shots](docs/schedule.png)
 
 ### The service booker (`/shoots`, `/coaching`, `/glow`, `/bar`)
 
@@ -73,12 +81,26 @@ Shoots with the crew, physique coaching, recovery and glam, and bar tables all b
 
 Beside it, a **draft call sheet** fills in as you choose (call time, set, who, length, what you get) and holds **Add to shot list**. On phones the total and the action are pinned to the bottom. Free windows load once per variant, person and site, and every day and start time is worked out in the browser.
 
+![Shoots — the Golden Hour Shoot on the rooftop: photographer, day and golden-hour start times, with the draft call sheet](docs/shoots.png)
+
+![Coaching — physique coaching by tier, coach, site and length (30, 60 or 90 minutes), priced in place](docs/coaching.png)
+
 ### The shot list, the release form, the call sheet
 
 - The cart is a **contact sheet**: each session is a numbered frame with its set photo, and its shot add-ons are circled in grease pencil. Totals and offers always come from the cart.
 - **Checkout is a release form**: the shot list runs across the top as a film strip. One document holds *The talent* (your details) and *The release* (the waiver, whether the crew may post you, your Instagram handle, your goal), signed with one "Sign & continue". Then the payment section opens: Stripe or pay at the desk. The free First Glow Tour needs no payment.
 - The confirmation is a **call sheet**: call time (15 minutes early, 25 with a shoot), scene, crew, set, wardrobe notes and the circled shots for each session; notes on what to bring, getting there and when the edits land; calendar links; "same time next week"; and a **9:16 story card** drawn on a canvas that you can download and post.
 - **`/account`** is **Your roll**: up next as call sheets (move and cancel up to 12 hours before), and every past session on a **contact sheet**, circled when the crew shot it, with an honest delivery state ("in the edit" until the turnaround passes, then "sent to your email"). The edits themselves arrive by email; the site never holds the media. Orders and settings sit alongside it.
+
+![Shot list — the cart as a contact sheet: a Rhythm Ride with two shots circled and a Golden Hour Shoot, with First glow and Shot on us applied](docs/shot-list.png)
+
+![Checkout — "Sign the release": the shot list as a film strip, the totals and the release form](docs/checkout.png)
+
+![Thank-you — the call sheet with call times, crew, sets, wardrobe notes and the circled shots](docs/thank-you.png)
+
+![Your roll — up next as call sheets, with the shots booked for each session](docs/account.png)
+
+![Your roll — the contact sheet of past sessions, circled when the crew shot them, with the delivery state of the edits](docs/account-contact-sheet.png)
 
 ### Offers
 
@@ -90,6 +112,19 @@ Offers on a session don't stack: it gets the biggest one (40% off a first class,
 - **`/classes/[slug]`**: the class, what the crew shoots, the wardrobe note, the coaches and the next call times.
 - **`/sites/[slug]`**: address, hours, transit, parking, facilities and the sets in that building.
 - **`/glow-pass`**: a clearly labelled **"Coming soon"** preview of a monthly pass. Nothing is for sale; the call to action is the free First Glow Tour.
+
+![Crew — photographers, a filmmaker and a makeup artist, with their handles and a book link](docs/crew.png)
+
+![Glow — infrared suites, the cold plunge, the red light pod, compression and glam](docs/glow.png)
+
+![The bar — the menu from the store's add-ons and a table after class](docs/bar.png)
+
+![The Glow Pass — a "Coming soon" preview; the only action books the free First Glow Tour](docs/glow-pass.png)
+
+<p>
+  <img src="docs/mobile-schedule.png" alt="Phone — the schedule grouped by set, with the day strip and its sunset times" width="300" />
+  <img src="docs/mobile-story.png" alt="Phone — the Sunset Rooftop Yoga story with a Book sticker" width="300" />
+</p>
 
 ### Passwordless accounts
 
