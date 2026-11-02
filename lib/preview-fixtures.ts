@@ -8,6 +8,12 @@ import { classMeta, serviceMeta, setMeta, shotMeta, siteConfig, toneFor, type Sh
  */
 type Fx = Partial<BookingView> & { title: string; category: string; key: string; shotTitles?: string[]; site?: 'south-beach' | 'wynwood' };
 
+/** Photos for fixture sessions that don't happen on a set (1:1 coaching, the intro tour). */
+const FALLBACK_IMAGE: Record<string, string> = {
+	'physique-coaching': '/images/classes/pt-senior.jpg',
+	'first-glow-tour': '/images/classes/first-glow-tour.jpg',
+};
+
 function view(id: string, dayOffset: number, time: string, minutes: number, o: Fx): BookingView {
 	const today = localParts(Date.now()).date;
 	const date = dayOffset >= 0 ? localDates(today, dayOffset + 1).at(-1)! : shift(today, dayOffset);
@@ -27,7 +33,7 @@ function view(id: string, dayOffset: number, time: string, minutes: number, o: F
 		siteSlug,
 		siteName: site.nickname,
 		setName: set?.name ?? null,
-		image: set?.image ?? null,
+		image: set?.image ?? FALLBACK_IMAGE[o.key] ?? null,
 		whatToBring: classMeta(key)?.whatToBring ?? serviceMeta(key)?.whatToBring ?? [],
 		wardrobe: classMeta(key)?.wardrobe ?? serviceMeta(key)?.wardrobe ?? null,
 		transit: site.transit,
