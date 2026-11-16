@@ -86,7 +86,7 @@ export function AppointmentDetail({ id, initialAction }: { id: string; initialAc
 						<p className="mt-1 text-ink-2">
 							{longDayLabel(v.start)} · {timeLabel(v.start)} · {minutesLabel(v.minutes)}
 						</p>
-						<p className="text-sm text-muted">{[v.variant, v.coach ? `with ${v.coach}` : null, v.setName, v.siteName, v.people > 1 ? `${v.people} people` : null].filter(Boolean).join(' · ')}</p>
+						<p className="text-sm text-muted">{[v.kindLabel === 'Class' ? null : v.variant, v.coach ? `with ${v.coach}` : null, v.setName, v.siteName, v.people > 1 ? `${v.people} people` : null].filter(Boolean).join(' · ')}</p>
 						{v.address ? <p className="text-sm text-muted">{v.address}</p> : null}
 						{v.shots.length ? (
 							<div className="mt-4 flex flex-wrap gap-x-3 gap-y-2">

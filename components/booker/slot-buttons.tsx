@@ -53,7 +53,7 @@ export function BookerDays({ days, value, onChange, today }: { days: Array<{ dat
 					>
 						<span className={clsx('font-mono text-[0.64rem] uppercase tracking-[0.14em]', on ? 'text-cream/70' : 'text-muted')}>{d.date === today ? 'Today' : wd}</span>
 						<span className="font-display text-[1.45rem] font-bold leading-tight">{Number(dd)}</span>
-						<span className={clsx('font-mono text-[0.6rem]', on ? 'text-cream/70' : 'text-muted')}>{d.count ? `${d.count} times` : 'Full'}</span>
+						<span className={clsx('font-mono text-[0.6rem]', on ? 'text-cream/70' : 'text-muted')}>{d.count ? `${d.count} ${d.count === 1 ? 'time' : 'times'}` : 'No times'}</span>
 					</button>
 				);
 			})}
