@@ -17,6 +17,10 @@ export function OrderDetailView({ id }: { id: string }) {
 	if (error && !o) return <AccountError what="this order" onRetry={() => void mutate()} />;
 	if (isLoading || !o) return <AccountLoading label="Loading the order" />;
 	const cur = o.paymentCurrencyCode;
+	// The order's `subtotal` is already net of offers and leaves out cancelled sessions: rebuild the gross the same way.
+	const live = o.lineItems.filter((li) => li.appointment?.status !== 'canceled');
+	const gross = live.reduce((sum, li) => sum + li.originalSubtotal + li.addOnLineItems.reduce((a, ao) => a + ao.originalSubtotal, 0), 0);
+	const offers = Math.max(0, Math.round((gross - o.subtotal) * 100) / 100);
 	return (
 		<div className="max-w-3xl">
 			<Link href="/account/orders" className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-muted hover:text-ink">
@@ -47,7 +51,7 @@ export function OrderDetailView({ id }: { id: string }) {
 									</span>
 								) : null}
 							</span>
-							<span className="font-mono">{formatPrice(li.discountedTotal, cur)}</span>
+							<span className="font-mono">{formatPrice(li.discountedSubtotal + li.addOnSubtotal, cur)}</span>
 						</li>
 					);
 				})}
@@ -55,12 +59,18 @@ export function OrderDetailView({ id }: { id: string }) {
 			<dl className="ml-auto mt-4 max-w-xs space-y-1 text-sm">
 				<div className="flex justify-between">
 					<dt className="text-muted">Subtotal</dt>
-					<dd className="font-mono">{formatPrice(o.subtotal, cur)}</dd>
+					<dd className="font-mono">{formatPrice(gross, cur)}</dd>
 				</div>
-				{o.subtotal > o.total ? (
+				{offers > 0 ? (
 					<div className="flex justify-between">
 						<dt className="text-muted">Offers</dt>
-						<dd className="font-mono text-pink">−{formatPrice(o.subtotal - o.total, cur)}</dd>
+						<dd className="font-mono text-pink">−{formatPrice(offers, cur)}</dd>
+					</div>
+				) : null}
+				{!o.taxesIncluded && o.totalTax > 0 ? (
+					<div className="flex justify-between">
+						<dt className="text-muted">Tax</dt>
+						<dd className="font-mono">{formatPrice(o.totalTax, cur)}</dd>
 					</div>
 				) : null}
 				<div className="flex justify-between border-t border-line pt-2">

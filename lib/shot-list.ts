@@ -11,8 +11,9 @@ export interface CartItemLike {
 	id: string;
 	discountedTotal?: number | null;
 	totalDiscount?: number | null;
+	originalSubtotal?: number | null;
 	appointment?: (AppointmentLike & { id?: string; product?: AppointmentLike['product'] & { image?: { url?: string | null } | null } }) | null;
-	addOnItems?: Array<{ id: string; quantity: number; discountedTotal?: number | null; totalDiscount?: number | null; addOn?: { title?: string | null } | null }> | null;
+	addOnItems?: Array<{ id: string; quantity: number; discountedTotal?: number | null; totalDiscount?: number | null; originalSubtotal?: number | null; addOn?: { title?: string | null } | null }> | null;
 	discounts?: Array<{ title?: string | null }> | null;
 }
 
@@ -68,7 +69,8 @@ export function framesFor(items: readonly CartItemLike[] | null | undefined): Fr
 				coachFirstName: meta.coachFirstName,
 				place: meta.locationTitle?.replace(/^Afterglow\s+/, '') ?? null,
 				people: meta.people,
-				total: it.discountedTotal ?? 0,
+				// The item's own total covers the class or session only; the frame price includes its shots and extras.
+				total: (it.discountedTotal ?? 0) + (it.addOnItems ?? []).reduce((sum, a) => sum + (a.discountedTotal ?? 0), 0),
 				baseDiscount: it.totalDiscount ?? 0,
 				offer: (it.totalDiscount ?? 0) > 0 ? (it.discounts?.[0]?.title ?? null) : null,
 				shots,
@@ -77,7 +79,16 @@ export function framesFor(items: readonly CartItemLike[] | null | undefined): Fr
 		});
 }
 
-/** How many sessions in the list have at least one shot add-on. */
+/** How many shot add-ons are circled across the list. */
 export function shotCount(frames: readonly Frame[]): number {
 	return frames.reduce((n, f) => n + f.shots.length, 0);
+}
+
+/** Everything on the list before offers. The cart's `subtotal` is already net of discounts. */
+export function grossSubtotal(items: readonly CartItemLike[] | null | undefined): number {
+	const cents = (items ?? []).reduce((sum, it) => {
+		const addOns = (it.addOnItems ?? []).reduce((a, ao) => a + Math.round((ao.originalSubtotal ?? ao.discountedTotal ?? 0) * 100), 0);
+		return sum + Math.round((it.originalSubtotal ?? it.discountedTotal ?? 0) * 100) + addOns;
+	}, 0);
+	return cents / 100;
 }

@@ -4,18 +4,20 @@ import { clsx } from 'clsx';
 import type { CartResponse } from '@opencals/storefront-sdk';
 import { formatPrice } from '@/lib/format';
 import { codeState } from '@/lib/discount-state';
+import { grossSubtotal } from '@/lib/shot-list';
 
-/** Subtotal, each applied offer and the total, exactly as the cart returns them. */
+/** The gross before offers, each applied offer and the cart's total. */
 export function Totals({ cart, currency, className }: { cart: CartResponse; currency: string; className?: string }) {
 	const state = codeState(cart);
 	// "Shot on us" can come back with a zero amount on a line with no shots: hide it.
 	const discounts = (cart.appliedDiscounts ?? []).filter((d) => d.totalAmount > 0);
-	const saved = Math.max(0, cart.subtotal - cart.total);
+	const gross = grossSubtotal(cart.items);
+	const saved = Math.max(0, Math.round((gross - cart.subtotal) * 100) / 100);
 	return (
 		<dl className={clsx('space-y-1.5 text-[0.95rem]', className)}>
 			<div className="flex justify-between gap-4">
 				<dt className="text-muted">Sessions & shots</dt>
-				<dd className="font-mono">{formatPrice(cart.subtotal, currency)}</dd>
+				<dd className="font-mono">{formatPrice(gross, currency)}</dd>
 			</div>
 			{discounts.map((d) => (
 				<div key={d.id} className="flex justify-between gap-4">
@@ -26,6 +28,12 @@ export function Totals({ cart, currency, className }: { cart: CartResponse; curr
 					<dd className="whitespace-nowrap font-mono text-pink">−{formatPrice(d.totalAmount, currency)}</dd>
 				</div>
 			))}
+			{!cart.taxesIncluded && cart.totalTax > 0 ? (
+				<div className="flex justify-between gap-4">
+					<dt className="text-muted">Tax</dt>
+					<dd className="font-mono">{formatPrice(cart.totalTax, currency)}</dd>
+				</div>
+			) : null}
 			{state.status === 'outranked' ? (
 				<p className="text-xs text-muted">{state.code} is on the order, but a better offer already applies. Offers on a session don&rsquo;t stack: it gets the biggest one.</p>
 			) : null}
