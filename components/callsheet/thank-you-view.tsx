@@ -12,12 +12,13 @@ import { awaitingOfAll, readHandoff, type CheckoutHandoff } from '@/lib/booking-
 import { PaymentNote } from '@/components/callsheet/payment-note';
 import { buttonClasses } from '@/components/ui/button';
 import { CallSheet } from '@/components/callsheet/call-sheet';
+import { AccountLoading } from '@/components/roll/states';
 
 function viewsOf(order: OrderDetailResponse | undefined): BookingView[] {
 	return (order?.lineItems ?? [])
-		.map((li) => li.appointment)
-		.filter((a) => a != null)
-		.map((a) => toBookingView(a))
+		.filter((li) => li.appointment != null)
+		// The order's appointment comes without its add-ons; they are on the line, so hand them over for the shots column.
+		.map((li) => toBookingView({ ...li.appointment, addOns: li.addOnLineItems.map((x) => ({ quantity: x.quantity, addOn: x.addOn })) }))
 		.sort((a, b) => a.start - b.start);
 }
 
@@ -37,7 +38,14 @@ export function ThankYouView({ orderId }: { orderId: string | null }) {
 		setHandoff(orderId ? readHandoff(orderId) : null);
 	}, [orderId]);
 
-	if (status === 'loading' || isLoading) return <div className="min-h-[70vh]" aria-busy="true" />;
+	if (status === 'loading' || isLoading) {
+		return (
+			<section className="container-x min-h-[70vh] py-14">
+				<p className="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-muted">Booked · printing the call sheet</p>
+				<AccountLoading label="Loading your call sheet" />
+			</section>
+		);
+	}
 	if (status !== 'authenticated') {
 		const back = orderId ? `/thank-you?orderId=${encodeURIComponent(orderId)}` : '/account';
 		const awaiting = handoff?.awaiting ?? null;
