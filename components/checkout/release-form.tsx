@@ -205,7 +205,7 @@ export function ReleaseForm() {
 										</span>
 									</div>
 									<p className="mt-1.5 font-mono text-[0.6rem] tracking-[0.16em] text-[#f4a93b]">
-										{String(f.n).padStart(2, '0')} ▸ {f.shots.length ? `${f.shots.length} ${f.shots.length === 1 ? 'shot' : 'shots'}` : 'no shots'}
+										{String(f.n).padStart(2, '0')} ▸ {f.shots.length ? `${f.shots.length} ${f.shots.length === 1 ? 'shot' : 'shots'}` : f.category === 'content' ? 'full shoot' : 'no shots'}
 									</p>
 								</li>
 							))}
