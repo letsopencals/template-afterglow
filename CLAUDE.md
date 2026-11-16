@@ -145,9 +145,14 @@ rings, grease pencil, contact sheet, call sheet, golden hour).
   and duo → `customAttributes.people = "2"`), then the header flashes and the
   Shot List drawer opens.
 - **Shot List** (`lib/shot-list.ts`, `components/shotlist/*`): the cart as a
-  contact sheet, one numbered frame per session with the shots circled. **Totals
-  always come from the cart.** Zero-amount applied discounts are hidden (Shot on
-  us can return 0 on a line with no shots).
+  contact sheet, one numbered frame per session with the shots circled. **The
+  total and each offer come from the cart.** The API's `subtotal` (cart and
+  order) is already net of offers, so the "Sessions & shots" gross is rebuilt from
+  the lines' `originalSubtotal` with `grossSubtotal()` (one helper for the shot
+  list, checkout and the order page). A frame's price is its session plus its
+  add-ons after offers. Zero-amount applied discounts are hidden (Shot on us can
+  return 0 on a line with no shots). Crew-shoot copy keys on `isCrewShoot()`:
+  `content` services except a `selfShoot` hire (the Studio Wall).
 - **Offers**: per line the biggest non-combinable one wins (First glow 40% on a
   first order of classes; Early light 20% on classes starting Mon–Fri 6–8 AM;
   `GLOW15`). **Shot on us** is automatic and combinable: 30% off the shot add-ons

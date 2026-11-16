@@ -88,6 +88,8 @@ export interface ServiceMeta {
 	set?: SetKey;
 	/** What the person you choose is called on this service ("Photographer", "Coach"). */
 	whoLabel?: string;
+	/** A `content` service the customer shoots themselves (the Studio Wall hire): no crew, no edits. */
+	selfShoot?: true;
 }
 
 export type Role = 'coach' | 'photographer' | 'videographer' | 'makeup';
@@ -641,6 +643,7 @@ export const siteConfig = {
 			startStep: 60,
 			lengths: [60, 120, 180, 240],
 			set: 'studio-wall',
+			selfShoot: true,
 			whatToBring: ['Your camera and your crew'],
 		},
 		'infrared-sauna': {
@@ -1062,6 +1065,11 @@ export function classMeta(classKey: string | null | undefined): ClassMeta | null
 export function serviceMeta(key: string | null | undefined): ServiceMeta | null {
 	if (!key) return null;
 	return (siteConfig.services as Record<string, ServiceMeta>)[key] ?? null;
+}
+
+/** A session the Afterglow crew shoots end to end: a `content` service, except one hired to shoot yourself. */
+export function isCrewShoot(category: string | null | undefined, offeringKey: string | null | undefined): boolean {
+	return category === 'content' && !serviceMeta(offeringKey)?.selfShoot;
 }
 
 export function setMeta(key: string | null | undefined): (SetMeta & { key: SetKey }) | null {

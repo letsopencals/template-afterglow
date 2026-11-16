@@ -1,3 +1,4 @@
+import { isCrewShoot } from '@/lib/site-config';
 import type { BookingView } from '@/lib/booking-view';
 
 /**
@@ -31,8 +32,8 @@ export function splitRoll(views: readonly BookingView[], now: number): RollSplit
 export type EditsState = { kind: 'none' } | { kind: 'editing'; dueAt: number } | { kind: 'sent' };
 
 /** Where a past session's edits are: no shots booked, still in the edit (due by), or emailed. A shoot always delivers. */
-export function editsState(v: Pick<BookingView, 'shots' | 'end'> & { category?: string }, now: number): EditsState {
-	const isShoot = v.category === 'content';
+export function editsState(v: Pick<BookingView, 'shots' | 'end'> & { category?: string; offeringKey?: string | null }, now: number): EditsState {
+	const isShoot = isCrewShoot(v.category, v.offeringKey);
 	if (!v.shots.length && !isShoot) return { kind: 'none' };
 	const hours = Math.max(48, ...v.shots.map((s) => Number.parseInt(s.eta, 10) || 48));
 	const dueAt = v.end + hours * 3_600_000;

@@ -52,7 +52,7 @@ export const SessionRow = memo(function SessionRow({
 				<span className={clsx('min-w-0', full && 'opacity-55')}>
 					<span className="flex items-start gap-2 sm:items-center">
 						<span aria-hidden className="mt-0.5 h-4 w-[3px] shrink-0 rounded-full sm:mt-0" style={{ background: toneHex(o.tone) }} />
-						<span className="line-clamp-2 text-[1.08rem] font-medium leading-tight sm:truncate">{o.title}</span>
+						<span className="line-clamp-2 text-[1.08rem] font-medium leading-tight sm:line-clamp-1">{o.title}</span>
 						{o.offPeak ? <span className="hidden shrink-0 rounded-[5px] bg-rec/70 px-1.5 py-px font-mono text-[0.62rem] uppercase text-night sm:inline">{siteConfig.offPeak.label}</span> : null}
 					</span>
 					<span className="mt-1 flex items-center gap-2 text-[0.88rem] text-muted">

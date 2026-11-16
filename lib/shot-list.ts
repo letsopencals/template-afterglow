@@ -1,10 +1,11 @@
 import { getBookingMeta, type AppointmentLike } from '@/lib/booking-meta';
-import { classMeta, serviceMeta, setMeta, shotMeta, siteConfig, type ShotMeta, type Tone } from '@/lib/site-config';
+import { classMeta, isCrewShoot, serviceMeta, setMeta, shotMeta, siteConfig, type ShotMeta, type Tone } from '@/lib/site-config';
 
 /**
  * The cart as a contact sheet: one frame per session, numbered in time order,
  * with the shot add-ons pulled out (they get the grease-pencil circle) from the
- * other extras. Pure; the totals always come from the cart itself.
+ * other extras. Pure. The total and each offer come from the cart; only the gross
+ * before offers is rebuilt from the lines (`grossSubtotal`).
  */
 
 export interface CartItemLike {
@@ -24,8 +25,8 @@ export interface Frame {
 	title: string;
 	variant: string | null;
 	tone: Tone;
-	/** The offering's category: `content` sessions are shoots, so they never need a shot add-on. */
-	category: string;
+	/** The crew shoots this session end to end (a shoot, not a class), so it needs no shot add-on. */
+	crewShoot: boolean;
 	/** The set photo (or the category photo) from site copy. */
 	image: string | null;
 	from: string;
@@ -65,7 +66,7 @@ export function framesFor(items: readonly CartItemLike[] | null | undefined): Fr
 				title: meta.title,
 				variant: meta.kindLabel === 'Class' ? null : meta.variant,
 				tone: meta.tone,
-				category: meta.category,
+				crewShoot: isCrewShoot(meta.category, key),
 				image,
 				from: appt.from,
 				minutes: meta.minutes,
@@ -87,11 +88,24 @@ export function shotCount(frames: readonly Frame[]): number {
 	return frames.reduce((n, f) => n + f.shots.length, 0);
 }
 
-/** Everything on the list before offers. The cart's `subtotal` is already net of discounts. */
-export function grossSubtotal(items: readonly CartItemLike[] | null | undefined): number {
-	const cents = (items ?? []).reduce((sum, it) => {
-		const addOns = (it.addOnItems ?? []).reduce((a, ao) => a + Math.round((ao.originalSubtotal ?? ao.discountedTotal ?? 0) * 100), 0);
-		return sum + Math.round((it.originalSubtotal ?? it.discountedTotal ?? 0) * 100) + addOns;
+interface GrossLine {
+	originalSubtotal: number;
+	appointment?: { status?: string | null } | null;
+	/** Cart lines carry `addOnItems`, order lines `addOnLineItems`. */
+	addOnItems?: ReadonlyArray<{ originalSubtotal: number }> | null;
+	addOnLineItems?: ReadonlyArray<{ originalSubtotal: number }> | null;
+}
+
+/**
+ * Everything before offers, for a cart or an order. The API's `subtotal` is already net of discounts and has no
+ * gross field, so this adds up each line's and add-on's `originalSubtotal` in whole cents, skipping cancelled
+ * sessions as the order's own subtotal does.
+ */
+export function grossSubtotal(lines: readonly GrossLine[] | null | undefined): number {
+	const cents = (lines ?? []).reduce((sum, line) => {
+		if (line.appointment?.status === 'canceled') return sum;
+		const addOns = (line.addOnItems ?? line.addOnLineItems ?? []).reduce((a, ao) => a + Math.round(ao.originalSubtotal * 100), 0);
+		return sum + Math.round(line.originalSubtotal * 100) + addOns;
 	}, 0);
 	return cents / 100;
 }

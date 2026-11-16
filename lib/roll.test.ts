@@ -29,6 +29,9 @@ describe('editsState', () => {
 	it('treats a shoot as always delivering', () => {
 		expect(editsState({ ...v('s', -60), category: 'content' }, now)).toEqual({ kind: 'sent' });
 	});
+	it('has no edits for a studio hire, where the customer shoots themselves', () => {
+		expect(editsState({ ...v('s', -60), category: 'content', offeringKey: 'studio-wall-hire' }, now)).toEqual({ kind: 'none' });
+	});
 	it('is in the edit until the longest turnaround passes, then sent', () => {
 		const recent = v('a', -5, { shots: [shot, roll] });
 		expect(editsState(recent, now)).toEqual({ kind: 'editing', dueAt: recent.end + 48 * H });

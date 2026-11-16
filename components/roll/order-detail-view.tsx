@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import type { OrderDetailResponse } from '@opencals/storefront-sdk';
 import { fetcher } from '@/lib/fetcher';
 import { formatPrice } from '@/lib/format';
+import { grossSubtotal } from '@/lib/shot-list';
 import { toBookingView } from '@/lib/booking-view';
 import { dayLabel, timeLabel } from '@/lib/when';
 import { toneHex } from '@/lib/site-config';
@@ -17,9 +18,7 @@ export function OrderDetailView({ id }: { id: string }) {
 	if (error && !o) return <AccountError what="this order" onRetry={() => void mutate()} />;
 	if (isLoading || !o) return <AccountLoading label="Loading the order" />;
 	const cur = o.paymentCurrencyCode;
-	// The order's `subtotal` is already net of offers and leaves out cancelled sessions: rebuild the gross the same way.
-	const live = o.lineItems.filter((li) => li.appointment?.status !== 'canceled');
-	const gross = live.reduce((sum, li) => sum + li.originalSubtotal + li.addOnLineItems.reduce((a, ao) => a + ao.originalSubtotal, 0), 0);
+	const gross = grossSubtotal(o.lineItems);
 	const offers = Math.max(0, Math.round((gross - o.subtotal) * 100) / 100);
 	return (
 		<div className="max-w-3xl">
