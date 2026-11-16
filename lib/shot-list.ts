@@ -24,6 +24,8 @@ export interface Frame {
 	title: string;
 	variant: string | null;
 	tone: Tone;
+	/** The offering's category: `content` sessions are shoots, so they never need a shot add-on. */
+	category: string;
 	/** The set photo (or the category photo) from site copy. */
 	image: string | null;
 	from: string;
@@ -63,6 +65,7 @@ export function framesFor(items: readonly CartItemLike[] | null | undefined): Fr
 				title: meta.title,
 				variant: meta.kindLabel === 'Class' ? null : meta.variant,
 				tone: meta.tone,
+				category: meta.category,
 				image,
 				from: appt.from,
 				minutes: meta.minutes,

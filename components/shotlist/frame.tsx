@@ -57,7 +57,7 @@ export function FrameCard({ frame, currency, onRemove, removing, compact = false
 						))}
 					</div>
 				) : !compact ? (
-					<p className="mt-2 text-[0.8rem] text-muted">No shots on this one. You can add them in the session.</p>
+					<p className="mt-2 text-[0.8rem] text-muted">{frame.category === 'content' ? 'The crew shoots the whole session.' : 'No shots on this one. You can add them in the session.'}</p>
 				) : null}
 				{frame.extras.length ? (
 					<p className="mt-2 text-[0.8rem] text-muted">
