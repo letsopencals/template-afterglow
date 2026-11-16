@@ -194,11 +194,15 @@ export function ServiceBooker({
 		</div>
 	);
 
+	// Steps are numbered in the order shown, so a booker without options, sites or lengths reads 01, 02, 03.
+	const steps = [offering.series.length > 1 && 'option', whoChoices.length > 1 && 'who', siteChoices.length > 1 && 'where', lengths.length > 1 && 'length', offering.party && 'party', 'day', (addOns.length || addOnsLoading) && 'extras'].filter(Boolean);
+	const stepNo = (key: string) => String(steps.indexOf(key) + 1).padStart(2, '0');
+
 	return (
 		<div className="grid min-w-0 gap-10 lg:grid-cols-12">
 			<div className="min-w-0 space-y-8 lg:col-span-8">
 				{offering.series.length > 1 ? (
-					<Block n="01" title="Option">
+					<Block n={stepNo('option')} title="Option">
 						<ChoiceRow
 							name="Option"
 							value={series.id}
@@ -211,7 +215,7 @@ export function ServiceBooker({
 					</Block>
 				) : null}
 				{whoChoices.length > 1 ? (
-					<Block n="02" title={whoLabel}>
+					<Block n={stepNo('who')} title={whoLabel}>
 						<WhoPicker
 							people={whoChoices}
 							value={whoId}
@@ -226,7 +230,7 @@ export function ServiceBooker({
 				{siteChoices.length > 1 || lengths.length > 1 || offering.party ? (
 					<div className="grid gap-8 sm:grid-cols-2">
 						{siteChoices.length > 1 ? (
-							<Block n="03" title="Where">
+							<Block n={stepNo('where')} title="Where">
 								<ChoiceRow
 									name="Where"
 									value={siteId}
@@ -239,7 +243,7 @@ export function ServiceBooker({
 							</Block>
 						) : null}
 						{lengths.length > 1 ? (
-							<Block n="04" title="How long">
+							<Block n={stepNo('length')} title="How long">
 								<ChoiceRow
 									name="How long"
 									value={String(length)}
@@ -252,7 +256,7 @@ export function ServiceBooker({
 							</Block>
 						) : null}
 						{offering.party ? (
-							<Block n="04" title="Party size">
+							<Block n={stepNo('party')} title="Party size">
 								<ChoiceRow
 									name="Party size"
 									value={String(places)}
@@ -266,7 +270,7 @@ export function ServiceBooker({
 						) : null}
 					</div>
 				) : null}
-				<Block n="05" title="Day & time" aside={isLoading ? <span className="font-mono text-xs text-muted">Loading times…</span> : null}>
+				<Block n={stepNo('day')} title="Day & time" aside={isLoading ? <span className="font-mono text-xs text-muted">Loading times…</span> : null}>
 					{rangesError ? <p className="text-sm text-danger">Times didn&rsquo;t load. Refresh to try again.</p> : null}
 					{!rangesError && ranges && !firstOpen ? (
 						<p className="rounded-[12px] border border-dashed border-line px-4 py-6 text-center text-muted">Nothing free in the next three weeks{who ? ` with ${who.firstName}. Try anyone.` : '.'}</p>
@@ -289,7 +293,7 @@ export function ServiceBooker({
 					)}
 				</Block>
 				{addOns.length || addOnsLoading ? (
-					<Block n="06" title={hasShots ? 'Shots & extras' : 'Extras'}>
+					<Block n={stepNo('extras')} title={hasShots ? 'Shots & extras' : 'Extras'}>
 						<div className="space-y-5">
 							<ShotPicker addOns={addOns} picked={addOnPicks} onToggle={toggle} loading={addOnsLoading} />
 							<ExtrasList addOns={addOns} picked={addOnPicks} onToggle={toggle} />
