@@ -7,7 +7,7 @@ import { useAddOns } from '@/hooks/use-add-ons';
 import { useAddToShotList } from '@/hooks/use-add-to-shot-list';
 import { Button } from '@/components/ui/button';
 import { ShotPicker, ExtrasList } from '@/components/schedule/shot-picker';
-import { classMeta, siteConfig } from '@/lib/site-config';
+import { classMeta, shotMeta, siteConfig } from '@/lib/site-config';
 import { formatPrice } from '@/lib/format';
 import { minutesLabel, timeLabel } from '@/lib/when';
 import type { Occurrence } from '@/lib/timetable';
@@ -26,7 +26,7 @@ export function SessionTake({ occurrence, cls, coach, onBooked }: { occurrence: 
 	const [flash, setFlash] = useState(0);
 	const toggle = (id: string, on: boolean) => setQuantity(id, on ? 1 : 0);
 	const extrasTotal = useMemo(() => addOns.filter((a) => picked[a.id]).reduce((s, a) => s + a.price * (picked[a.id] ?? 0), 0), [addOns, picked]);
-	const shotsPicked = selection.length;
+	const shotsPicked = addOns.filter((a) => picked[a.id] && shotMeta(a.title)).length;
 
 	const book = async () => {
 		const ok = await add([
@@ -88,7 +88,7 @@ export function SessionTake({ occurrence, cls, coach, onBooked }: { occurrence: 
 					</p>
 					<p className="font-mono text-[0.72rem] text-muted">
 						{formatPrice(occurrence.price)}
-						{extrasTotal > 0 ? ` + ${formatPrice(extrasTotal)} ${shotsPicked === 1 ? 'extra' : 'extras'}` : ''} · offers apply in your shot list
+						{extrasTotal > 0 ? ` + ${formatPrice(extrasTotal)} ${selection.length === 1 ? 'add-on' : 'add-ons'}` : ''} · offers apply in your shot list
 					</p>
 				</div>
 				{error ? (
