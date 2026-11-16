@@ -177,6 +177,7 @@ export const siteConfig = {
 		pass: '/images/hero/glow-pass.jpg',
 		bar: '/images/sets/bar.jpg',
 		crew: '/images/gallery/shoot-bts.jpg',
+		shoots: '/images/hero/we-shoot.jpg',
 		categories: {
 			ride: '/images/sets/neon-room.jpg',
 			sculpt: '/images/sets/mirror-hall.jpg',

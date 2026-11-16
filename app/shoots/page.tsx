@@ -30,7 +30,7 @@ export default async function ShootsPage() {
 					</>
 				}
 				intro={siteConfig.categories.content.blurb}
-				image={siteConfig.media.crew}
+				image={siteConfig.media.shoots}
 				readout="ISO 100 · 1/1000 · f2.8"
 			/>
 			<div className="container-x pb-20">
