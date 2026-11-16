@@ -12,13 +12,13 @@ export function Hero({ next }: { next: Occurrence | null }) {
 	const m = siteConfig.media;
 	return (
 		<section className="relative isolate overflow-hidden bg-night text-white">
-			<div className="relative h-[min(92svh,54rem)] min-h-[36rem] w-full">
+			<div className="relative flex min-h-[min(92svh,54rem)] w-full flex-col sm:h-[min(92svh,54rem)] sm:min-h-[36rem]">
 				<HeroVideo wide={m.heroVideo} vertical={m.heroVideoVertical} poster={m.heroPoster} />
 				<div aria-hidden className="light-drift absolute inset-0 mix-blend-soft-light" />
 				<div aria-hidden className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/20 to-night/10" />
 				<Viewfinder inset="lg" timecode={next ? `NEXT ${timeLabel(next.start)}` : 'LIVE'} readout="ISO 800 · 1/250 · f1.8 · 4K" />
 
-				<div className="container-x relative flex h-full flex-col justify-end pb-14 sm:pb-20">
+				<div className="container-x relative flex flex-1 flex-col justify-end pb-14 pt-16 sm:pb-20">
 					<p className="mb-5 font-mono text-[0.72rem] uppercase tracking-[0.22em] text-white/80">South Beach · Wynwood · Miami</p>
 					<h1 className="max-w-4xl font-display text-[3.4rem] font-extrabold leading-[0.92] tracking-[-0.035em] sm:text-[5.5rem] lg:text-[7.2rem]">
 						You train.
